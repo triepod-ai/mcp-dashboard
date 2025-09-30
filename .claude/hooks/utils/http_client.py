@@ -88,11 +88,12 @@ def create_hook_event(
     hook_event_type: str,
     payload: Dict[str, Any],
     chat: Optional[list] = None,
-    summary: Optional[str] = None
+    summary: Optional[str] = None,
+    correlation_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Create a properly formatted HookEvent for the server.
-    
+
     Args:
         source_app: The source application (e.g., "claude-code")
         session_id: The Claude session ID
@@ -100,7 +101,8 @@ def create_hook_event(
         payload: The event payload data
         chat: Optional chat data
         summary: Optional event summary
-        
+        correlation_id: Optional correlation ID for pairing pre/post tool events
+
     Returns:
         Formatted event dictionary
     """
@@ -130,13 +132,16 @@ def create_hook_event(
         "payload": payload,
         "timestamp": int(time.time() * 1000)  # Milliseconds since epoch
     }
-    
+
     if chat is not None:
         event["chat"] = chat
-    
+
     if summary is not None:
         event["summary"] = summary
-    
+
+    if correlation_id is not None:
+        event["correlation_id"] = correlation_id
+
     return event
 
 

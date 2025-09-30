@@ -247,6 +247,7 @@ def main():
         # Extract optional fields
         summary = input_data.get('summary')
         chat = input_data.get('chat') if args.add_chat else None
+        correlation_id = input_data.get('correlation_id')
         
         # Generate summary if requested AND trigger AI-powered TTS
         if args.summarize and not summary:
@@ -285,7 +286,8 @@ def main():
             hook_event_type=event_type,
             payload=payload,
             chat=chat,
-            summary=summary
+            summary=summary,
+            correlation_id=correlation_id
         )
         
         # Send to observability server

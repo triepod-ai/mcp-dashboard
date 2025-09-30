@@ -13,6 +13,7 @@ Each function has a single, clear responsibility.
 import subprocess
 import tempfile
 import os
+import uuid
 from pathlib import Path
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
@@ -285,3 +286,97 @@ def cleanup_stale_sessions() -> int:
         print(f"Error during cleanup: {e}")
 
     return cleanup_count
+
+
+def generate_correlation_id() -> str:
+    """
+    Generate a unique correlation ID for pairing pre/post tool events.
+
+    Returns:
+        str: A UUID4 string
+    """
+    return str(uuid.uuid4())
+
+
+def store_correlation_id(correlation_id: str, project_name: str, tool_name: str) -> bool:
+    """
+    Store correlation ID for a tool execution to temporary file.
+
+    Args:
+        correlation_id: UUID for correlating pre/post events
+        project_name: Project name for scoping
+        tool_name: Tool name for scoping
+
+    Returns:
+        bool: True if stored successfully, False otherwise
+    """
+    try:
+        # Create unique file per project/tool combination
+        correlation_file = Path(f"/tmp/claude_correlation_{project_name}_{tool_name}")
+
+        # Store correlation_id with timestamp
+        content = f"{correlation_id}\n{datetime.now().isoformat()}"
+
+        # Atomic write using temporary file
+        temp_file = Path(f"{correlation_file}.tmp")
+        temp_file.write_text(content)
+        temp_file.rename(correlation_file)
+
+        # Set appropriate permissions (readable only by user)
+        correlation_file.chmod(0o600)
+
+        return True
+
+    except Exception as e:
+        print(f"Error storing correlation_id: {e}")
+        return False
+
+
+def get_stored_correlation_id(project_name: str, tool_name: str) -> Optional[str]:
+    """
+    Retrieve stored correlation ID for a tool execution.
+
+    Args:
+        project_name: Project name for scoping
+        tool_name: Tool name for scoping
+
+    Returns:
+        str: The correlation ID if found and valid, None otherwise
+    """
+    try:
+        correlation_file = Path(f"/tmp/claude_correlation_{project_name}_{tool_name}")
+
+        if not correlation_file.exists():
+            return None
+
+        content = correlation_file.read_text().strip()
+        lines = content.split('\n')
+
+        if len(lines) < 2:
+            return None
+
+        correlation_id = lines[0]
+        timestamp_str = lines[1]
+
+        # Check staleness (10-minute TTL for correlation)
+        try:
+            stored_time = datetime.fromisoformat(timestamp_str)
+            current_time = datetime.now()
+
+            if current_time - stored_time > timedelta(minutes=10):
+                # Stale correlation, clean up file
+                correlation_file.unlink(missing_ok=True)
+                return None
+
+            # After successful retrieval, clean up the file (one-time use)
+            correlation_file.unlink(missing_ok=True)
+
+            return correlation_id
+
+        except ValueError:
+            # Invalid timestamp format
+            return None
+
+    except Exception as e:
+        print(f"Error retrieving correlation_id: {e}")
+        return None
