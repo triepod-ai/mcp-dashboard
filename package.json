@@ -27,7 +27,7 @@
     "build-client": "cd client && npm run build",
     "build-cli": "cd cli && npm run build",
     "clean": "rimraf ./node_modules ./client/node_modules ./cli/node_modules ./build ./client/dist ./server/build ./cli/build ./package-lock.json && npm install",
-    "dev": "node client/bin/start.js --dev",
+    "dev": "node client/bin/start.js --dev --no-auth",
     "dev:windows": "node client/bin/start.js --dev",
     "dev:sdk": "npm run link:sdk && concurrently \"npm run dev\" \"cd sdk && npm run build:esm:w\"",
     "link:sdk": "(test -d sdk || ln -sf ${MCP_SDK:-$PWD/../typescript-sdk} sdk) && (cd sdk && npm link && (test -d node_modules || npm i)) && npm link @modelcontextprotocol/sdk",
@@ -44,7 +44,8 @@
     "prepare": "husky && npm run build",
     "publish-all": "npm publish --workspaces --access public && npm publish --access public",
     "update-version": "node scripts/update-version.js",
-    "check-version": "node scripts/check-version-consistency.js"
+    "check-version": "node scripts/check-version-consistency.js",
+    "kill": "for port in 6286 6287; do lsof -ti:$port | xargs kill -9 2>/dev/null || echo \"No process on port $port\"; done"
   },
   "dependencies": {
     "@modelcontextprotocol/dashboard-cli": "^0.1.0",

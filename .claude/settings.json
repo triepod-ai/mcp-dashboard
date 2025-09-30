@@ -1,35 +1,5 @@
 {
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/pre_tool_use.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type PreToolUse --summarize"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/post_tool_use.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type PostToolUse --summarize"
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "",
@@ -41,32 +11,13 @@
         ]
       }
     ],
-    "Stop": [
+    "PostToolUse": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/stop.py --chat"
-          },
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type Stop --summarize"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/subagent_stop.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type SubagentStop --summarize"
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/post_tool_use_with_correlation.py | uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type PostToolUse --summarize"
           }
         ]
       }
@@ -86,16 +37,13 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
+    "PreToolUse": [
       {
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/user_prompt_submit.py --log-only"
-          },
-          {
-            "type": "command",
-            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type UserPromptSubmit --summarize"
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/pre_tool_use_with_correlation.py | uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type PreToolUse --summarize"
           }
         ]
       }
@@ -141,6 +89,50 @@
           {
             "type": "command",
             "command": "uv run /home/bryan/dashboard/.claude/hooks/session_event_tracker.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/stop.py --chat"
+          },
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type Stop --summarize"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/subagent_stop.py"
+          },
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type SubagentStop --summarize"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/user_prompt_submit.py --log-only"
+          },
+          {
+            "type": "command",
+            "command": "uv run /home/bryan/dashboard/.claude/hooks/send_event_async.py --source-app dashboard --event-type UserPromptSubmit --summarize"
           }
         ]
       }

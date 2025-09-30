@@ -5,15 +5,38 @@
       "args": ["@modelcontextprotocol/server-everything"],
       "env": {
         "HELLO": "Hello MCP!"
-      }
+      },
+      "description": "Comprehensive test server with all MCP capabilities"
     },
-    "myserver": {
-      "command": "node",
-      "args": ["build/index.js", "arg1", "arg2"],
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/tmp"],
+      "description": "File system access server for /tmp directory"
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git", "--repository", "."],
+      "description": "Git operations server for current directory"
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-brave-search"],
       "env": {
-        "KEY": "value",
-        "KEY2": "value2"
-      }
+        "BRAVE_API_KEY": "your-api-key-here"
+      },
+      "description": "Web search capabilities via Brave Search API",
+      "enabled": false
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-postgres", "postgresql://localhost/testdb"],
+      "description": "PostgreSQL database server (requires local DB)",
+      "enabled": false
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"],
+      "description": "Simple in-memory storage server for development"
     }
   }
 }

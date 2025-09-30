@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "chroma": {
+      "command": "/home/bryan/run-chroma-mcp.sh",
+      "args": [],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "TQDM_DISABLE": "1"
+      },
+      "transport": "stdio",
+      "description": "Chroma vector database MCP server - connects to chroma-chroma container on port 8000",
+      "enabled": true
+    },
+    "qdrant": {
+      "command": "/home/bryan/run-qdrant-docker-mcp.sh",
+      "args": [],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "transport": "stdio",
+      "description": "Qdrant enhanced MCP server - connects to mcp-server-qdrant-enhanced Docker container",
+      "enabled": true
+    }
+  }
+}
