@@ -9,13 +9,10 @@ import {
   ALL_TOOLS_FLAT,
   getToolByName,
   getToolsByCategory,
-  type ALL_SAMPLE_TOOLS,
 } from "../fixtures/sampleTools";
 import {
   getResponse,
   getDefaultResponse,
-  getToolScenarios,
-  type SampleResponsePattern,
 } from "../fixtures/sampleResponses";
 
 /**
@@ -410,7 +407,7 @@ export class MockServerManager {
 
   constructor() {
     // Register default mock servers
-    Object.entries(MOCK_SERVERS).forEach(([key, server]) => {
+    Object.entries(MOCK_SERVERS).forEach(([_key, server]) => {
       this.servers.set(server.getInfo().id, server);
     });
   }

@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "chroma": {
+      "name": "chroma",
+      "command": "/home/bryan/run-chroma-mcp.sh",
+      "args": [],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "TQDM_DISABLE": "1"
+      },
+      "transport": "stdio",
+      "enabled": true
+    },
+    "qdrant": {
+      "name": "qdrant",
+      "command": "/home/bryan/run-qdrant-docker-mcp.sh",
+      "args": [],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "transport": "stdio",
+      "enabled": true
+    },
+    "6505d5d7-3acc-4c55-bef4-b88db604a64c": {
+      "name": "ollama",
+      "command": "/home/bryan/run-ollama-mcp.sh",
+      "args": [],
+      "env": {},
+      "transport": "stdio",
+      "enabled": true
+    },
+    "3660ef1e-ebf1-4581-9727-8f2f7929fabf": {
+      "name": "filesystem",
+      "command": "/home/bryan/run-filesystem-mcp.sh",
+      "args": [],
+      "env": {},
+      "transport": "stdio",
+      "enabled": true
+    }
+  }
+}
