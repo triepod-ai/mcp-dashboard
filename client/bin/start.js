@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import { randomBytes } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_MCP_PROXY_LISTEN_PORT = "6277";
+const DEFAULT_MCP_PROXY_LISTEN_PORT = "6287";
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms, true));
@@ -36,6 +36,7 @@ async function startDevServer(serverOptions) {
     abort,
     transport,
     serverUrl,
+    authDisabled,
   } = serverOptions;
   const serverCommand = "npx";
   const serverArgs = ["tsx", "watch", "--clear-screen=false", "src/index.ts"];
@@ -51,6 +52,7 @@ async function startDevServer(serverOptions) {
       MCP_ENV_VARS: JSON.stringify(envVars),
       ...(transport ? { MCP_TRANSPORT: transport } : {}),
       ...(serverUrl ? { MCP_SERVER_URL: serverUrl } : {}),
+      ...(authDisabled ? { DANGEROUSLY_OMIT_AUTH: "true" } : {}),
     },
     signal: abort.signal,
     echoOutput: true,
@@ -89,6 +91,7 @@ async function startProdServer(serverOptions) {
     mcpServerArgs,
     transport,
     serverUrl,
+    authDisabled,
   } = serverOptions;
   const inspectorServerPath = resolve(
     __dirname,
@@ -116,6 +119,7 @@ async function startProdServer(serverOptions) {
         CLIENT_PORT,
         MCP_PROXY_AUTH_TOKEN: sessionToken,
         MCP_ENV_VARS: JSON.stringify(envVars),
+        ...(authDisabled ? { DANGEROUSLY_OMIT_AUTH: "true" } : {}),
       },
       signal: abort.signal,
       echoOutput: true,
@@ -221,6 +225,7 @@ async function main() {
   let command = null;
   let parsingFlags = true;
   let isDev = false;
+  let authDisabled = false;
   let transport = null;
   let serverUrl = null;
 
@@ -234,6 +239,11 @@ async function main() {
 
     if (parsingFlags && arg === "--dev") {
       isDev = true;
+      continue;
+    }
+
+    if (parsingFlags && arg === "--no-auth") {
+      authDisabled = true;
       continue;
     }
 
@@ -265,7 +275,7 @@ async function main() {
     }
   }
 
-  const CLIENT_PORT = process.env.CLIENT_PORT ?? "6274";
+  const CLIENT_PORT = process.env.CLIENT_PORT ?? "6286";
   const SERVER_PORT = process.env.SERVER_PORT ?? DEFAULT_MCP_PROXY_LISTEN_PORT;
 
   console.log(
@@ -277,7 +287,8 @@ async function main() {
   // Use provided token from environment or generate a new one
   const sessionToken =
     process.env.MCP_PROXY_AUTH_TOKEN || randomBytes(32).toString("hex");
-  const authDisabled = !!process.env.DANGEROUSLY_OMIT_AUTH;
+  // authDisabled is set by --no-auth flag or environment variable
+  authDisabled = authDisabled || !!process.env.DANGEROUSLY_OMIT_AUTH;
 
   const abort = new AbortController();
 
@@ -300,6 +311,7 @@ async function main() {
       mcpServerArgs,
       transport,
       serverUrl,
+      authDisabled,
     };
 
     const result = isDev

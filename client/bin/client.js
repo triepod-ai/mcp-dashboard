@@ -40,7 +40,7 @@ const server = http.createServer((request, response) => {
   return handler(request, response, handlerOptions);
 });
 
-const port = parseInt(process.env.CLIENT_PORT || "6274", 10);
+const port = parseInt(process.env.CLIENT_PORT || "6286", 10);
 const host = process.env.HOST || "localhost";
 server.on("listening", () => {
   const url = process.env.INSPECTOR_URL || `http://${host}:${port}`;
