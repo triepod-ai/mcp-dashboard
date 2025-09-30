@@ -1,1 +1,0 @@
-/home/bryan/agentgen/agents/core/debugger.md

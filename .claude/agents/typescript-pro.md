@@ -1,1 +1,0 @@
-/home/bryan/agentgen/agents/specialists/typescript-pro.md
