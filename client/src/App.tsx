@@ -13,10 +13,10 @@ import {
   Resource,
   ResourceTemplate,
   Root,
-  ServerNotification,
   Tool,
   LoggingLevel,
 } from "@modelcontextprotocol/sdk/types.js";
+import { ServerNotification } from "./components/HistoryAndNotifications";
 import { OAuthTokensSchema } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { SESSION_KEYS, getServerSpecificKey } from "./lib/constants";
 import { AuthDebuggerState, EMPTY_DEBUGGER_STATE } from "./lib/auth-types";
@@ -263,8 +263,14 @@ const App = () => {
     oauthScope,
     config,
     connectionType,
+    serverId: transportType === "stdio" ? command.split(" ")[0] || "stdio" : new URL(sseUrl).hostname,
     onNotification: (notification) => {
-      setNotifications((prev) => [...prev, notification as ServerNotification]);
+      setNotifications((prev) => [...prev, {
+        method: notification.method,
+        params: notification.params,
+        server: transportType === "stdio" ? command.split(" ")[0] || "stdio" : new URL(sseUrl).hostname,
+        timestamp: Date.now(),
+      }]);
     },
     onPendingRequest: (request, resolve, reject) => {
       setPendingSampleRequests((prev) => [
@@ -915,7 +921,12 @@ const App = () => {
         />
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-auto">
+        <div
+          className="overflow-auto"
+          style={{
+            height: `calc(100% - ${historyPaneHeight}px)`
+          }}
+        >
           {mcpClient ? (
             <Tabs
               value={activeTab}
@@ -1168,7 +1179,9 @@ const App = () => {
         <div
           className="relative border-t border-border"
           style={{
-            height: `${historyPaneHeight}px`,
+            height: `${Math.max(historyPaneHeight, 250)}px`, // Ensure minimum height
+            minHeight: '250px',
+            backgroundColor: 'blue', // Debug: make the container visible
           }}
         >
           <div
