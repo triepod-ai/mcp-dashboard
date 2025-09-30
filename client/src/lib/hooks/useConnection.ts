@@ -37,6 +37,7 @@ import { useToast } from "@/lib/hooks/useToast";
 import { z } from "zod";
 import { ConnectionStatus, CLIENT_IDENTITY } from "../constants";
 import { Notification } from "../notificationTypes";
+import { RequestHistoryItem } from "@/components/HistoryAndNotifications";
 import {
   auth,
   discoverOAuthProtectedResourceMetadata,
@@ -70,13 +71,14 @@ interface UseConnectionOptions {
   oauthScope?: string;
   config: InspectorConfig;
   connectionType?: "direct" | "proxy";
+  serverId?: string; // Add server identifier for multi-server support
   onNotification?: (notification: Notification) => void;
   onStdErrNotification?: (notification: Notification) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onPendingRequest?: (request: any, resolve: any, reject: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   onElicitationRequest?: (request: any, resolve: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   getRoots?: () => any[];
   defaultLoggingLevel?: LoggingLevel;
 }
@@ -92,6 +94,7 @@ export function useConnection({
   oauthScope,
   config,
   connectionType = "proxy",
+  serverId,
   onNotification,
   onPendingRequest,
   onElicitationRequest,
@@ -107,9 +110,7 @@ export function useConnection({
   const [clientTransport, setClientTransport] = useState<Transport | null>(
     null,
   );
-  const [requestHistory, setRequestHistory] = useState<
-    { request: string; response?: string }[]
-  >([]);
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>([]);
   const [completionsSupported, setCompletionsSupported] = useState(false);
   const [mcpSessionId, setMcpSessionId] = useState<string | null>(null);
   const [mcpProtocolVersion, setMcpProtocolVersion] = useState<string | null>(
@@ -138,6 +139,8 @@ export function useConnection({
       {
         request: JSON.stringify(request),
         response: response !== undefined ? JSON.stringify(response) : undefined,
+        server: serverId,
+        timestamp: Date.now(),
       },
     ]);
   };

@@ -60,21 +60,17 @@ export interface ServerStatus {
 }
 
 export interface DashboardStatus {
-  proxy: {
-    totalSessions: number;
-    activeSessions: number;
-    connectedServers: number;
-    totalServers: number;
-  };
-  servers: {
+  timestamp: string;
+  servers: ServerStatus[];
+  connections: {
     total: number;
-    connected: number;
-    disconnected: number;
-    errors: number;
-    servers: ServerStatus[];
+    active: number;
   };
+  messageQueue: number;
+  connectedServers: number;
+  totalServers: number;
   uptime: number;
-  memory: {
+  memory?: {
     rss: number;
     heapUsed: number;
     heapTotal: number;
@@ -85,19 +81,37 @@ interface ServerManagementPanelProps {
   dashboardApiUrl?: string;
 }
 
-const DEFAULT_API_URL = "http://localhost:6277/api/dashboard";
+const DEFAULT_API_URL = "http://localhost:6287/api/dashboard";
 
 export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
   dashboardApiUrl = DEFAULT_API_URL,
 }) => {
+  // Get auth token from URL params or environment
+  const urlParams = new URLSearchParams(window.location.search);
+  const authToken = urlParams.get('token') ||
+    localStorage.getItem('mcp_dashboard_token') ||
+    '22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1'; // fallback to current token
+
   // Use SSE hook for real-time updates
   const { status, connectionState, reconnect } = useDashboardSSE({
     url: dashboardApiUrl.replace('/api/dashboard', ''),
+    authToken,
     autoReconnect: true,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Debug logging for status changes
+  useEffect(() => {
+    console.log("🐛 [ServerManagementPanel] Status changed:", status);
+    if (status) {
+      console.log("🐛 [ServerManagementPanel] status.servers:", status.servers);
+      console.log("🐛 [ServerManagementPanel] status.servers:", status.servers);
+      console.log("🐛 [ServerManagementPanel] length check:", status?.servers && status.servers.length > 0);
+    }
+    console.log("🐛 [ServerManagementPanel] Connection state:", connectionState);
+  }, [status, connectionState]);
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
 
   const [newServer, setNewServer] = useState<Partial<ServerConfig>>({
@@ -297,8 +311,8 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
           {status && (
             <div className="text-sm text-gray-600 space-x-4">
               <span>Uptime: {formatUptime(status.uptime)}</span>
-              <span>Memory: {formatMemory(status.memory.heapUsed)}</span>
-              <span>Servers: {status.servers.connected}/{status.servers.total}</span>
+              <span>Memory: {status.memory ? formatMemory(status.memory.heapUsed) : 'N/A'}</span>
+              <span>Servers: {status.connectedServers}/{status.totalServers}</span>
             </div>
           )}
 
@@ -428,9 +442,18 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
       )}
 
       {/* Server list */}
-      {status?.servers.servers && status.servers.servers.length > 0 ? (
+      {connectionState.status === "connecting" ? (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-gray-600">Loading servers...</span>
+            </div>
+          </CardContent>
+        </Card>
+      ) : status?.servers && Array.isArray(status.servers) && status.servers.length > 0 ? (
         <div className="grid gap-4">
-          {status.servers.servers.map((server) => (
+          {status.servers.map((server) => (
             <Card key={server.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -497,6 +520,17 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
             <Monitor className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-medium mb-2">No MCP Servers</h3>
             <p className="mb-4">Add your first MCP server to get started.</p>
+            {/* Debug info */}
+            <details className="text-left text-xs bg-gray-100 p-2 rounded mt-4">
+              <summary className="cursor-pointer">Debug Info</summary>
+              <pre className="mt-2 whitespace-pre-wrap">
+                Connection State: {connectionState.status}
+                {connectionState.error && `Error: ${connectionState.error}`}
+                Status Object: {JSON.stringify(status, null, 2)}
+                Servers Check: {status?.servers ? 'has servers object' : 'no servers object'}
+                Servers Array: {status?.servers ? `array length ${status.servers.length}` : 'no servers array'}
+              </pre>
+            </details>
             <Button onClick={() => setIsAddServerOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Server

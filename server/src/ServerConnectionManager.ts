@@ -1,4 +1,5 @@
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import {
   SSEClientTransport,
   SseError,
@@ -10,6 +11,8 @@ import {
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { findActualExecutable } from "spawn-rx";
 import { EventEmitter } from "events";
+import { writeFileSync, existsSync } from "fs";
+import path from "path";
 
 export interface ServerConfig {
   id: string;
@@ -25,6 +28,7 @@ export interface ServerConfig {
 export interface ServerConnection {
   config: ServerConfig;
   transport: Transport;
+  client: Client;
   status: "connecting" | "connected" | "disconnected" | "error";
   lastConnected?: Date;
   lastError?: Error;
@@ -45,6 +49,7 @@ export interface ServerEvent {
 export class ServerConnectionManager extends EventEmitter {
   private connections: Map<string, ServerConnection> = new Map();
   private defaultEnvironment: Record<string, string>;
+  private configFilePath: string = "./dashboard-config.json";
 
   constructor() {
     super();
@@ -65,11 +70,15 @@ export class ServerConnectionManager extends EventEmitter {
     const connection: ServerConnection = {
       config,
       transport: null as any, // Will be set when connecting
+      client: null as any, // Will be set when connecting
       status: "disconnected",
     };
 
     this.connections.set(config.id, connection);
     this.emit("server-added", { serverId: config.id, config });
+
+    // Persist configuration changes
+    await this.saveConfiguration();
 
     if (autoConnect && config.enabled) {
       await this.connectServer(config.id);
@@ -95,6 +104,18 @@ export class ServerConnectionManager extends EventEmitter {
     try {
       const transport = await this.createTransport(connection.config);
       connection.transport = transport;
+
+      // Create MCP client
+      const client = new Client({
+        name: "mcp-dashboard",
+        version: "1.0.0"
+      }, {
+        capabilities: {}
+      });
+
+      // Connect the client to the transport and perform handshake
+      await client.connect(transport);
+      connection.client = client;
 
       // Set up transport event handlers
       this.setupTransportHandlers(serverId, transport);
@@ -148,6 +169,9 @@ export class ServerConnectionManager extends EventEmitter {
 
     this.connections.delete(serverId);
     this.emit("server-removed", { serverId });
+
+    // Persist configuration changes
+    await this.saveConfiguration();
   }
 
   /**
@@ -221,7 +245,12 @@ export class ServerConnectionManager extends EventEmitter {
   /**
    * Load servers from configuration
    */
-  async loadFromConfig(config: { mcpServers: Record<string, any> }): Promise<void> {
+  async loadFromConfig(config: { mcpServers: Record<string, any> }, configPath?: string): Promise<void> {
+    // Update config path if provided
+    if (configPath) {
+      this.configFilePath = configPath;
+    }
+
     const promises = Object.entries(config.mcpServers).map(([id, serverConfig]) => {
       const fullConfig: ServerConfig = {
         id,
@@ -234,7 +263,8 @@ export class ServerConnectionManager extends EventEmitter {
         enabled: serverConfig.enabled !== false, // Default to true
       };
 
-      return this.addServer(fullConfig, false); // Don't auto-connect during load
+      // Add server without triggering saveConfiguration during initial load
+      return this.addServerWithoutSave(fullConfig, false);
     });
 
     await Promise.all(promises);
@@ -245,6 +275,29 @@ export class ServerConnectionManager extends EventEmitter {
       .map(conn => this.connectServer(conn.config.id));
 
     await Promise.allSettled(enabledServers);
+  }
+
+  /**
+   * Add a server without triggering saveConfiguration (for initial config loading)
+   */
+  private async addServerWithoutSave(config: ServerConfig, autoConnect = true): Promise<void> {
+    if (this.connections.has(config.id)) {
+      throw new Error(`Server with id '${config.id}' already exists`);
+    }
+
+    const connection: ServerConnection = {
+      config,
+      transport: null as any, // Will be set when connecting
+      client: null as any, // Will be set when connecting
+      status: "disconnected",
+    };
+
+    this.connections.set(config.id, connection);
+    this.emit("server-added", { serverId: config.id, config });
+
+    if (autoConnect && config.enabled) {
+      await this.connectServer(config.id);
+    }
   }
 
   /**
@@ -327,6 +380,44 @@ export class ServerConnectionManager extends EventEmitter {
 
     this.emit("server-event", serverEvent);
     this.emit(`server-${event}`, serverEvent);
+  }
+
+  /**
+   * Save current server configurations to file
+   */
+  private async saveConfiguration(): Promise<void> {
+    try {
+      const mcpServers: Record<string, any> = {};
+
+      for (const [id, connection] of this.connections) {
+        const config = connection.config;
+        mcpServers[id] = {
+          name: config.name,
+          command: config.command,
+          args: config.args || [],
+          env: config.env || {},
+          transport: config.transport || "stdio",
+          serverUrl: config.serverUrl,
+          enabled: config.enabled
+        };
+      }
+
+      const configData = {
+        mcpServers
+      };
+
+      writeFileSync(this.configFilePath, JSON.stringify(configData, null, 2));
+      console.log(`💾 Configuration saved to ${this.configFilePath}`);
+    } catch (error) {
+      console.error("❌ Error saving configuration:", error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /**
+   * Set the configuration file path
+   */
+  setConfigPath(filePath: string): void {
+    this.configFilePath = filePath;
   }
 
   /**

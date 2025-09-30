@@ -3,7 +3,7 @@ import type { DashboardStatus } from "@/components/ServerManagementPanel";
 
 export interface SSEEvent {
   type: "connection" | "status" | "server-event" | "proxy-event" | "heartbeat";
-  data: any;
+  data: any; // Dynamic SSE event data
 }
 
 export interface ConnectionState {
@@ -15,13 +15,21 @@ export interface ConnectionState {
 
 export interface UseDashboardSSEOptions {
   url: string;
+  authToken?: string;
   autoReconnect?: boolean;
   maxRetries?: number;
   retryDelay?: number;
 }
 
+export interface ServerEvent {
+  type: "server-event" | "proxy-event";
+  data: any;
+  timestamp: number;
+}
+
 export function useDashboardSSE({
   url,
+  authToken,
   autoReconnect = true,
   maxRetries = 5,
   retryDelay = 3000,
@@ -31,6 +39,7 @@ export function useDashboardSSE({
     status: "disconnected",
     retryCount: 0,
   });
+  const [serverEvents, setServerEvents] = useState<ServerEvent[]>([]);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,7 +53,12 @@ export function useDashboardSSE({
     setConnectionState(prev => ({ ...prev, status: "connecting" }));
 
     try {
-      const eventSource = new EventSource(`${url}/sse/dashboard`);
+      const sseUrl = authToken
+        ? `${url}/sse/dashboard?token=${encodeURIComponent(authToken)}`
+        : `${url}/sse/dashboard`;
+      console.log("🐛 [useDashboardSSE] Connecting to:", sseUrl);
+      console.log("🐛 [useDashboardSSE] Auth token:", authToken?.slice(0, 8) + "...");
+      const eventSource = new EventSource(sseUrl);
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
@@ -72,16 +86,28 @@ export function useDashboardSSE({
               break;
 
             case "status":
+              console.log("🐛 [useDashboardSSE] Raw SSE status received:", sseEvent.data);
+              console.log("🐛 [useDashboardSSE] servers structure:", sseEvent.data.servers);
+              console.log("🐛 [useDashboardSSE] servers.servers:", sseEvent.data.servers?.servers);
               setStatus(sseEvent.data);
               break;
 
             case "server-event":
               console.log("🔔 Server event:", sseEvent.data);
-              // Status will be updated in the next status event
+              setServerEvents(prev => [...prev, {
+                type: "server-event",
+                data: sseEvent.data,
+                timestamp: Date.now()
+              }]);
               break;
 
             case "proxy-event":
               console.log("🔗 Proxy event:", sseEvent.data);
+              setServerEvents(prev => [...prev, {
+                type: "proxy-event",
+                data: sseEvent.data,
+                timestamp: Date.now()
+              }]);
               break;
 
             case "heartbeat":
@@ -100,6 +126,8 @@ export function useDashboardSSE({
         if (!mountedRef.current) return;
 
         console.error("📡 Dashboard SSE error:", error);
+        console.error("📡 EventSource readyState:", eventSource.readyState);
+        console.error("📡 EventSource url:", eventSource.url);
 
         setConnectionState(prev => {
           const newState = {
@@ -163,6 +191,10 @@ export function useDashboardSSE({
     connect();
   };
 
+  const clearServerEvents = () => {
+    setServerEvents([]);
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     connect();
@@ -171,6 +203,7 @@ export function useDashboardSSE({
       mountedRef.current = false;
       disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
   // Cleanup on unmount
@@ -189,8 +222,10 @@ export function useDashboardSSE({
   return {
     status,
     connectionState,
+    serverEvents,
     connect,
     disconnect,
     reconnect,
+    clearServerEvents,
   };
 }
