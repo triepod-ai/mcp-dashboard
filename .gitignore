@@ -111,3 +111,13 @@ mcp-servers/
 # Claude Code specific
 .claude/settings.local.json
 .claude/scripts/temp*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
