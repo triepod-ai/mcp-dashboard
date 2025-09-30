@@ -78,10 +78,10 @@ const ToolResults = ({
       return (
         <>
           <h4 className="font-semibold mb-2">Invalid Tool Result:</h4>
-          <JsonView data={toolResult} />
+          <JsonView data={toolResult} showViewToggle={true} />
           <h4 className="font-semibold mb-2">Errors:</h4>
           {parsedResult.error.errors.map((error, idx) => (
-            <JsonView data={error} key={idx} />
+            <JsonView data={error} key={idx} showViewToggle={true} />
           ))}
         </>
       );
@@ -135,7 +135,7 @@ const ToolResults = ({
           <div className="mb-4">
             <h5 className="font-semibold mb-2 text-sm">Structured Content:</h5>
             <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-              <JsonView data={structuredResult.structuredContent} />
+              <JsonView data={structuredResult.structuredContent} showViewToggle={true} />
               {validationResult && (
                 <div
                   className={`mt-2 p-2 rounded text-sm ${
@@ -158,7 +158,7 @@ const ToolResults = ({
           <div className="mb-4">
             <h5 className="font-semibold mb-2 text-sm">Meta:</h5>
             <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-              <JsonView data={structuredResult._meta} />
+              <JsonView data={structuredResult._meta} showViewToggle={true} />
             </div>
           </div>
         )}
@@ -195,7 +195,7 @@ const ToolResults = ({
             {structuredResult.content.map((item, index) => (
               <div key={index} className="mb-2">
                 {item.type === "text" && (
-                  <JsonView data={item.text} isError={isError} />
+                  <JsonView data={item.text} isError={isError} showViewToggle={true} />
                 )}
                 {item.type === "image" && (
                   <img
@@ -214,7 +214,7 @@ const ToolResults = ({
                       <p>Your browser does not support audio playback</p>
                     </audio>
                   ) : (
-                    <JsonView data={item.resource} />
+                    <JsonView data={item.resource} showViewToggle={true} />
                   ))}
                 {item.type === "resource_link" && (
                   <ResourceLinkView
@@ -236,7 +236,7 @@ const ToolResults = ({
     return (
       <>
         <h4 className="font-semibold mb-2">Tool Result (Legacy):</h4>
-        <JsonView data={toolResult.toolResult} />
+        <JsonView data={toolResult.toolResult} showViewToggle={true} />
       </>
     );
   }

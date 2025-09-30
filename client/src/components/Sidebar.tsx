@@ -228,7 +228,7 @@ const Sidebar = ({
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-border">
         <div className="flex items-center">
           <h1 className="ml-2 text-lg font-semibold">
-            MCP Inspector v{version}
+            MCP Inspector
           </h1>
         </div>
       </div>
@@ -820,6 +820,11 @@ const Sidebar = ({
               </a>
             </Button>
           </div>
+        </div>
+        <div className="mt-3 text-center">
+          <span className="text-sm text-muted-foreground">
+            MCP Dashboard v{version}
+          </span>
         </div>
       </div>
     </div>
