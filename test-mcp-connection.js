@@ -16,12 +16,15 @@ async function testMCPConnection() {
     console.log("✅ Transport created");
 
     // Create client - same as our server code
-    const client = new Client({
-      name: "mcp-test",
-      version: "1.0.0"
-    }, {
-      capabilities: {}
-    });
+    const client = new Client(
+      {
+        name: "mcp-test",
+        version: "1.0.0",
+      },
+      {
+        capabilities: {},
+      },
+    );
 
     console.log("✅ Client created");
 
@@ -37,7 +40,6 @@ async function testMCPConnection() {
     // Clean up
     await transport.close();
     console.log("✅ Connection closed");
-
   } catch (error) {
     console.error("💥 Error:", error);
   }

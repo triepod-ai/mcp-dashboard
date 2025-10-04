@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,7 +26,7 @@ import {
   FileText,
   Code2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 import { MCPAssessmentService } from "@/services/assessmentService";
 import {
@@ -43,7 +49,7 @@ interface AssessmentInterfaceProps {
   onCallTool?: (
     serverId: string,
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ) => Promise<CompatibilityCallToolResult>;
 }
 
@@ -52,17 +58,23 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   onCallTool,
 }) => {
   const [selectedServerId, setSelectedServerId] = useState<string>("");
-  const [assessment, setAssessment] = useState<MCPDirectoryAssessment | null>(null);
+  const [assessment, setAssessment] = useState<MCPDirectoryAssessment | null>(
+    null,
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTest, setCurrentTest] = useState("");
   const [readmeContent, setReadmeContent] = useState("");
-  const [config, setConfig] = useState<AssessmentConfiguration>(DEFAULT_ASSESSMENT_CONFIG);
+  const [config, setConfig] = useState<AssessmentConfiguration>(
+    DEFAULT_ASSESSMENT_CONFIG,
+  );
   const [showJson, setShowJson] = useState(false);
   const [showConfiguration, setShowConfiguration] = useState(true);
 
   const connectedServers = servers.filter((s) => s.status === "connected");
-  const selectedServer = connectedServers.find((s) => s.id === selectedServerId);
+  const selectedServer = connectedServers.find(
+    (s) => s.id === selectedServerId,
+  );
 
   const assessmentService = useMemo(
     () => new MCPAssessmentService(config),
@@ -91,21 +103,21 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
         `=== CORE CATEGORIES ===`,
         `Functionality: ${assessment.functionality.status} (${assessment.functionality.workingTools}/${assessment.functionality.totalTools} tools working)`,
         `Security: ${assessment.security.status} (Risk: ${assessment.security.overallRiskLevel})`,
-        `Documentation: ${assessment.documentation.status} (${assessment.documentation.metrics.hasReadme ? 'Has README' : 'No README'})`,
+        `Documentation: ${assessment.documentation.status} (${assessment.documentation.metrics.hasReadme ? "Has README" : "No README"})`,
         `Error Handling: ${assessment.errorHandling.status} (Quality: ${assessment.errorHandling.metrics.errorResponseQuality})`,
         `Usability: ${assessment.usability.status} (Naming: ${assessment.usability.metrics.toolNamingConvention})`,
         ``,
         `=== RECOMMENDATIONS ===`,
-        ...assessment.recommendations.map(rec => `• ${rec}`),
+        ...assessment.recommendations.map((rec) => `• ${rec}`),
         ``,
         `=== METADATA ===`,
         `Tests Run: ${assessment.totalTestsRun}`,
         `Execution Time: ${assessment.executionTime}ms`,
         `Assessor Version: ${assessment.assessorVersion}`,
       ];
-      return lines.join('\n');
+      return lines.join("\n");
     },
-    []
+    [],
   );
 
   const copyReport = useCallback(() => {
@@ -117,9 +129,9 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   const downloadReport = useCallback(() => {
     if (!assessment) return;
     const report = generateTextReport(assessment);
-    const blob = new Blob([report], { type: 'text/plain' });
+    const blob = new Blob([report], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `mcp-assessment-${assessment.serverName}-${new Date().toISOString()}.txt`;
     a.click();
@@ -129,10 +141,10 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   const downloadJson = useCallback(() => {
     if (!assessment) return;
     const blob = new Blob([JSON.stringify(assessment, null, 2)], {
-      type: 'application/json',
+      type: "application/json",
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `mcp-assessment-${assessment.serverName}-${new Date().toISOString()}.json`;
     a.click();
@@ -142,7 +154,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   const resetAssessment = useCallback(() => {
     setAssessment(null);
     setError(null);
-    setCurrentTest('');
+    setCurrentTest("");
     setShowJson(false);
   }, []);
 
@@ -161,7 +173,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
       // Create a wrapper for the callTool function
       const callTool = async (
         name: string,
-        params: Record<string, unknown>
+        params: Record<string, unknown>,
       ): Promise<CompatibilityCallToolResult> => {
         return await onCallTool(selectedServerId, name, params);
       };
@@ -172,7 +184,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
         selectedServer.name,
         (selectedServer.tools || []) as any,
         callTool,
-        readmeContent || undefined
+        readmeContent || undefined,
       );
 
       setAssessment(result);
@@ -199,7 +211,12 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   };
 
   const getStatusBadge = (status: AssessmentStatus) => {
-    const variant = status === "PASS" ? "default" : status === "FAIL" ? "destructive" : "secondary";
+    const variant =
+      status === "PASS"
+        ? "default"
+        : status === "FAIL"
+          ? "destructive"
+          : "secondary";
     return (
       <Badge variant={variant} className="ml-2">
         {status}
@@ -216,7 +233,8 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
             MCP Server Assessment
           </CardTitle>
           <CardDescription>
-            Comprehensive 5-point assessment of MCP servers for functionality, security, documentation, error handling, and usability.
+            Comprehensive 5-point assessment of MCP servers for functionality,
+            security, documentation, error handling, and usability.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -308,65 +326,91 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   </div>
                 </div>
 
-                {selectedServer && selectedServer.tools && selectedServer.tools.length > 0 && (
-                  <div className="space-y-2">
-                    <Label htmlFor="maxToolsToTest" className="text-sm">
-                      Max tools to test for errors (current: {config.maxToolsToTestForErrors === -1 ? 'All' : config.maxToolsToTestForErrors})
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="maxToolsToTest"
-                        type="number"
-                        value={config.maxToolsToTestForErrors === -1 ? selectedServer.tools.length : config.maxToolsToTestForErrors}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          setConfig({ ...config, maxToolsToTestForErrors: value });
-                        }}
-                        className="w-24"
-                        disabled={isRunning}
-                        min={0}
-                        max={selectedServer.tools.length}
-                      />
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setConfig({ ...config, maxToolsToTestForErrors: -1 })}
-                          disabled={isRunning}
-                          className="h-8 px-2 text-xs"
-                        >
-                          All
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setConfig({ ...config, maxToolsToTestForErrors: 3 })}
-                          disabled={isRunning}
-                          className="h-8 px-2 text-xs"
-                        >
-                          Quick (3)
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
+                {selectedServer &&
+                  selectedServer.tools &&
+                  selectedServer.tools.length > 0 && (
+                    <div className="space-y-2">
+                      <Label htmlFor="maxToolsToTest" className="text-sm">
+                        Max tools to test for errors (current:{" "}
+                        {config.maxToolsToTestForErrors === -1
+                          ? "All"
+                          : config.maxToolsToTestForErrors}
+                        )
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="maxToolsToTest"
+                          type="number"
+                          value={
+                            config.maxToolsToTestForErrors === -1
+                              ? selectedServer.tools.length
+                              : config.maxToolsToTestForErrors
+                          }
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
                             setConfig({
                               ...config,
-                              maxToolsToTestForErrors: Math.ceil(selectedServer.tools!.length / 2),
-                            })
-                          }
+                              maxToolsToTestForErrors: value,
+                            });
+                          }}
+                          className="w-24"
                           disabled={isRunning}
-                          className="h-8 px-2 text-xs"
-                        >
-                          Half ({Math.ceil(selectedServer.tools.length / 2)})
-                        </Button>
+                          min={0}
+                          max={selectedServer.tools.length}
+                        />
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                maxToolsToTestForErrors: -1,
+                              })
+                            }
+                            disabled={isRunning}
+                            className="h-8 px-2 text-xs"
+                          >
+                            All
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                maxToolsToTestForErrors: 3,
+                              })
+                            }
+                            disabled={isRunning}
+                            className="h-8 px-2 text-xs"
+                          >
+                            Quick (3)
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                maxToolsToTestForErrors: Math.ceil(
+                                  selectedServer.tools!.length / 2,
+                                ),
+                              })
+                            }
+                            disabled={isRunning}
+                            className="h-8 px-2 text-xs"
+                          >
+                            Half ({Math.ceil(selectedServer.tools.length / 2)})
+                          </Button>
+                        </div>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Limits error handling tests only (the most intensive
+                        tests)
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Limits error handling tests only (the most intensive tests)
-                    </p>
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>
@@ -375,7 +419,9 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
           <div className="flex flex-wrap gap-2 items-center">
             <Button
               onClick={runAssessment}
-              disabled={!selectedServer || isRunning || !selectedServer?.tools?.length}
+              disabled={
+                !selectedServer || isRunning || !selectedServer?.tools?.length
+              }
               className="flex items-center gap-2"
             >
               {isRunning ? (
@@ -437,7 +483,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   className="flex items-center gap-2"
                 >
                   <Code2 className="h-4 w-4" />
-                  {showJson ? 'Hide JSON' : 'View JSON'}
+                  {showJson ? "Hide JSON" : "View JSON"}
                 </Button>
               </>
             )}
@@ -450,8 +496,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
               <AlertDescription>
                 {config.parallelTesting
                   ? `Running ${config.maxParallelTests || 5} tests in parallel: ${currentTest}`
-                  : currentTest
-                }
+                  : currentTest}
               </AlertDescription>
             </Alert>
           )}
@@ -484,7 +529,11 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                 <code>{JSON.stringify(assessment, null, 2)}</code>
               </pre>
               <Button
-                onClick={() => navigator.clipboard.writeText(JSON.stringify(assessment, null, 2))}
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    JSON.stringify(assessment, null, 2),
+                  )
+                }
                 variant="outline"
                 size="sm"
                 className="absolute top-2 right-2"
@@ -507,11 +556,14 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                 {getStatusBadge(assessment.overallStatus)}
               </CardTitle>
               <CardDescription>
-                Completed on {new Date(assessment.assessmentDate).toLocaleString()}
+                Completed on{" "}
+                {new Date(assessment.assessmentDate).toLocaleString()}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">{assessment.summary}</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {assessment.summary}
+              </p>
 
               {/* Core Assessment Areas */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -519,7 +571,8 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   <div>
                     <div className="font-medium text-sm">Functionality</div>
                     <div className="text-xs text-muted-foreground">
-                      {assessment.functionality.workingTools}/{assessment.functionality.totalTools} tools working
+                      {assessment.functionality.workingTools}/
+                      {assessment.functionality.totalTools} tools working
                     </div>
                   </div>
                   {getStatusIcon(assessment.functionality.status)}
@@ -539,7 +592,9 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   <div>
                     <div className="font-medium text-sm">Documentation</div>
                     <div className="text-xs text-muted-foreground">
-                      {assessment.documentation.metrics.hasReadme ? "Has README" : "No README"}
+                      {assessment.documentation.metrics.hasReadme
+                        ? "Has README"
+                        : "No README"}
                     </div>
                   </div>
                   {getStatusIcon(assessment.documentation.status)}
@@ -549,7 +604,8 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   <div>
                     <div className="font-medium text-sm">Error Handling</div>
                     <div className="text-xs text-muted-foreground">
-                      Quality: {assessment.errorHandling.metrics.errorResponseQuality}
+                      Quality:{" "}
+                      {assessment.errorHandling.metrics.errorResponseQuality}
                     </div>
                   </div>
                   {getStatusIcon(assessment.errorHandling.status)}
@@ -559,7 +615,8 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
                   <div>
                     <div className="font-medium text-sm">Usability</div>
                     <div className="text-xs text-muted-foreground">
-                      Naming: {assessment.usability.metrics.toolNamingConvention}
+                      Naming:{" "}
+                      {assessment.usability.metrics.toolNamingConvention}
                     </div>
                   </div>
                   {getStatusIcon(assessment.usability.status)}
@@ -598,7 +655,8 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            No connected servers found. Please connect to an MCP server in the Servers tab to run assessments.
+            No connected servers found. Please connect to an MCP server in the
+            Servers tab to run assessments.
           </AlertDescription>
         </Alert>
       )}

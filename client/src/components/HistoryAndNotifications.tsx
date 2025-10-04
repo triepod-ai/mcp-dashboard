@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 
 // Types for dashboard's multi-server architecture
 export interface RequestHistoryItem {
-  request: string;  // JSON stringified request
+  request: string; // JSON stringified request
   response?: string; // JSON stringified response (optional)
-  server?: string;  // Server identifier for multi-server support
+  server?: string; // Server identifier for multi-server support
   timestamp?: number; // Timestamp for ordering
 }
 
 export interface ServerNotification {
-  method: string;   // Notification method
+  method: string; // Notification method
   params?: unknown; // Notification parameters (optional to match MCP SDK)
-  server?: string;  // Server identifier for multi-server support
+  server?: string; // Server identifier for multi-server support
   timestamp?: number; // Timestamp for ordering
 }
 
@@ -60,7 +60,8 @@ const HistoryAndNotifications = ({
 
   const handleNotificationsScroll = () => {
     if (notificationsScrollRef.current) {
-      notificationsScrollPosition.current = notificationsScrollRef.current.scrollTop;
+      notificationsScrollPosition.current =
+        notificationsScrollRef.current.scrollTop;
     }
   };
 
@@ -73,7 +74,8 @@ const HistoryAndNotifications = ({
 
   useEffect(() => {
     if (notificationsScrollRef.current) {
-      notificationsScrollRef.current.scrollTop = notificationsScrollPosition.current;
+      notificationsScrollRef.current.scrollTop =
+        notificationsScrollPosition.current;
     }
   }, [serverNotifications]);
 
@@ -151,9 +153,7 @@ const HistoryAndNotifications = ({
                           </div>
                         )}
                       </div>
-                      <span className="ml-2">
-                        {isExpanded ? "▼" : "▶"}
-                      </span>
+                      <span className="ml-2">{isExpanded ? "▼" : "▶"}</span>
                     </div>
                     {isExpanded && (
                       <>
@@ -249,9 +249,7 @@ const HistoryAndNotifications = ({
                           </div>
                         )}
                       </div>
-                      <span className="ml-2">
-                        {isExpanded ? "▼" : "▶"}
-                      </span>
+                      <span className="ml-2">{isExpanded ? "▼" : "▶"}</span>
                     </div>
                     {isExpanded && (
                       <div className="mt-2">

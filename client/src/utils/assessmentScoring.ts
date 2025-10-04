@@ -114,32 +114,62 @@ export function calculateAssessmentScores(
 }
 
 export function extractCategoryIssues(
-  category: FunctionalityAssessment | SecurityAssessment | DocumentationAssessment | ErrorHandlingAssessment | UsabilityAssessment | MCPSpecComplianceAssessment | Record<string, unknown>
+  category:
+    | FunctionalityAssessment
+    | SecurityAssessment
+    | DocumentationAssessment
+    | ErrorHandlingAssessment
+    | UsabilityAssessment
+    | MCPSpecComplianceAssessment
+    | Record<string, unknown>,
 ): string[] {
   const issues: string[] = [];
 
   // Extract from different category types using safe property access
-  if ('vulnerabilities' in category && category.vulnerabilities && Array.isArray(category.vulnerabilities)) {
+  if (
+    "vulnerabilities" in category &&
+    category.vulnerabilities &&
+    Array.isArray(category.vulnerabilities)
+  ) {
     issues.push(...category.vulnerabilities);
   }
 
-  if ('brokenTools' in category && category.brokenTools && Array.isArray(category.brokenTools)) {
+  if (
+    "brokenTools" in category &&
+    category.brokenTools &&
+    Array.isArray(category.brokenTools)
+  ) {
     category.brokenTools.forEach((tool: string) => {
       issues.push(`Tool '${tool}' is not working`);
     });
   }
 
-  if ('missingElements' in category && category.missingElements && Array.isArray(category.missingElements)) {
+  if (
+    "missingElements" in category &&
+    category.missingElements &&
+    Array.isArray(category.missingElements)
+  ) {
     issues.push(...category.missingElements);
   }
 
-  if ('issues' in category && category.issues && Array.isArray(category.issues)) {
+  if (
+    "issues" in category &&
+    category.issues &&
+    Array.isArray(category.issues)
+  ) {
     issues.push(...category.issues);
   }
 
-  if ('explanation' in category && category.explanation && issues.length === 0) {
+  if (
+    "explanation" in category &&
+    category.explanation &&
+    issues.length === 0
+  ) {
     // Use explanation as a fallback if no specific issues
-    if ('status' in category && (category.status === "FAIL" || category.status === "NEED_MORE_INFO")) {
+    if (
+      "status" in category &&
+      (category.status === "FAIL" || category.status === "NEED_MORE_INFO")
+    ) {
       issues.push(category.explanation as string);
     }
   }

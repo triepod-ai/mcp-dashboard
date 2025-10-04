@@ -7,6 +7,7 @@ The MCP Dashboard is a comprehensive management and monitoring interface for mul
 ## Features
 
 ### Core Features (from MCP Inspector)
+
 - **Server Inspection**: Interactive testing and debugging of MCP servers
 - **Tool Execution**: Execute MCP tools with form-based parameter input
 - **Resource Explorer**: Browse and read MCP resources with JSON visualization
@@ -15,6 +16,7 @@ The MCP Dashboard is a comprehensive management and monitoring interface for mul
 - **CLI Mode**: Scriptable command-line interface for automation
 
 ### Enhanced Features (Dashboard Extensions)
+
 - **MCP Directory Assessment**: Comprehensive quality assurance testing for MCP Directory submissions
   - 5-category scoring: Functionality, Security, Documentation, Error Handling, Usability
   - Automated test generation with intelligent parameter creation
@@ -98,6 +100,7 @@ Tools Tested: 6/6 passed
 ```
 
 For detailed documentation on the assessment module, see:
+
 - [IMPLEMENTATION_SUMMARY.md](client/IMPLEMENTATION_SUMMARY.md) - Technical implementation details
 - [MOCK_SERVER_INTEGRATION.md](client/MOCK_SERVER_INTEGRATION.md) - Mock server usage guide
 
@@ -132,6 +135,7 @@ The server will start up and the UI will be accessible at `http://localhost:6274
 To use the **MCP Directory Assessment** features:
 
 1. **Start the Dashboard** (from this repository):
+
    ```bash
    npm install
    npm run build

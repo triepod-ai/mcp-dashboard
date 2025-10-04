@@ -1,13 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wrench, Play, RefreshCw, AlertCircle, CheckCircle, Loader2, Wifi, WifiOff, StopCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Wrench,
+  Play,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  Wifi,
+  WifiOff,
+  StopCircle,
+} from "lucide-react";
 import JsonView from "./JsonView";
 import { useWebSocketTool } from "../hooks/useWebSocketTool";
 
@@ -42,7 +64,14 @@ interface ToolExecution {
   toolName: string;
   parameters: Record<string, unknown>;
   timestamp: Date;
-  status: "preparing" | "connecting" | "executing" | "running" | "completed" | "error" | "cancelled";
+  status:
+    | "preparing"
+    | "connecting"
+    | "executing"
+    | "running"
+    | "completed"
+    | "error"
+    | "cancelled";
   progress?: {
     message: string;
     percentage?: number;
@@ -60,7 +89,9 @@ const ToolExecutionInterface: React.FC = () => {
   const [servers, setServers] = useState<Server[]>([]);
   const [selectedServer, setSelectedServer] = useState<string>("");
   const [selectedTool, setSelectedTool] = useState<string>("");
-  const [toolParameters, setToolParameters] = useState<Record<string, unknown>>({});
+  const [toolParameters, setToolParameters] = useState<Record<string, unknown>>(
+    {},
+  );
   const [executions, setExecutions] = useState<ToolExecution[]>([]);
   const [loading, setLoading] = useState(false);
   const [discovering, setDiscovering] = useState(false);
@@ -78,36 +109,45 @@ const ToolExecutionInterface: React.FC = () => {
     executions: wsExecutions,
     connectionError: wsError,
     connect: wsConnect,
-    disconnect: wsDisconnect
+    disconnect: wsDisconnect,
   } = useWebSocketTool({
-    autoConnect: false,  // Disable auto-connect to prevent spam
+    autoConnect: false, // Disable auto-connect to prevent spam
     reconnectAttempts: 2, // Reduce reconnection attempts
-    reconnectDelay: 2000  // Increase delay between attempts
+    reconnectDelay: 2000, // Increase delay between attempts
   });
 
   // Fetch server list and their tools (NO AUTH for local dev)
   const fetchServersAndTools = async () => {
     setDiscovering(true);
     try {
-      const response = await fetch("http://localhost:6287/api/dashboard/servers");
+      const response = await fetch(
+        "http://localhost:6287/api/dashboard/servers",
+      );
       const data = await response.json();
 
       // Fetch tools for each connected server
       const serversWithTools: Server[] = await Promise.all(
-        data.servers.map(async (server: { id: string; name: string; status: string }) => {
-          if (server.status !== "connected") {
-            return { ...server, tools: [] };
-          }
+        data.servers.map(
+          async (server: { id: string; name: string; status: string }) => {
+            if (server.status !== "connected") {
+              return { ...server, tools: [] };
+            }
 
-          try {
-            const toolsResponse = await fetch(`http://localhost:6287/api/dashboard/servers/${server.id}/tools`);
-            const toolsData = await toolsResponse.json();
-            return { ...server, tools: toolsData.tools || [] };
-          } catch (error) {
-            console.error(`Failed to fetch tools for server ${server.id}:`, error);
-            return { ...server, tools: [] };
-          }
-        })
+            try {
+              const toolsResponse = await fetch(
+                `http://localhost:6287/api/dashboard/servers/${server.id}/tools`,
+              );
+              const toolsData = await toolsResponse.json();
+              return { ...server, tools: toolsData.tools || [] };
+            } catch (error) {
+              console.error(
+                `Failed to fetch tools for server ${server.id}:`,
+                error,
+              );
+              return { ...server, tools: [] };
+            }
+          },
+        ),
       );
 
       setServers(serversWithTools);
@@ -117,7 +157,6 @@ const ToolExecutionInterface: React.FC = () => {
       setDiscovering(false);
     }
   };
-
 
   useEffect(() => {
     fetchServersAndTools();
@@ -133,38 +172,42 @@ const ToolExecutionInterface: React.FC = () => {
   // Save scroll position when scrolling
   const handleExecutionHistoryScroll = () => {
     if (executionHistoryScrollRef.current) {
-      executionHistoryScrollPosition.current = executionHistoryScrollRef.current.scrollTop;
+      executionHistoryScrollPosition.current =
+        executionHistoryScrollRef.current.scrollTop;
     }
   };
 
   // Restore scroll position after data updates
   useEffect(() => {
     if (executionHistoryScrollRef.current) {
-      executionHistoryScrollRef.current.scrollTop = executionHistoryScrollPosition.current;
+      executionHistoryScrollRef.current.scrollTop =
+        executionHistoryScrollPosition.current;
     }
   }, [executions]);
 
   // Sync WebSocket executions with local state
   useEffect(() => {
-    const wsExecutionArray = Array.from(wsExecutions.values()).map(wsExec => ({
-      serverId: wsExec.serverId,
-      toolName: wsExec.toolName,
-      parameters: wsExec.parameters,
-      timestamp: wsExec.startTime,
-      status: wsExec.status,
-      progress: wsExec.progress,
-      result: wsExec.result,
-      error: wsExec.error,
-      executionId: wsExec.executionId,
-      duration: wsExec.duration,
-      source: "websocket" as const
-    }));
+    const wsExecutionArray = Array.from(wsExecutions.values()).map(
+      (wsExec) => ({
+        serverId: wsExec.serverId,
+        toolName: wsExec.toolName,
+        parameters: wsExec.parameters,
+        timestamp: wsExec.startTime,
+        status: wsExec.status,
+        progress: wsExec.progress,
+        result: wsExec.result,
+        error: wsExec.error,
+        executionId: wsExec.executionId,
+        duration: wsExec.duration,
+        source: "websocket" as const,
+      }),
+    );
 
-    setExecutions(prev => {
+    setExecutions((prev) => {
       // Remove old WebSocket executions and add updated ones
-      const httpExecutions = prev.filter(exec => exec.source !== "websocket");
-      return [...wsExecutionArray, ...httpExecutions].sort((a, b) =>
-        b.timestamp.getTime() - a.timestamp.getTime()
+      const httpExecutions = prev.filter((exec) => exec.source !== "websocket");
+      return [...wsExecutionArray, ...httpExecutions].sort(
+        (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
       );
     });
   }, [wsExecutions]);
@@ -175,23 +218,30 @@ const ToolExecutionInterface: React.FC = () => {
     setLoading(true);
 
     // Clean up parameters - remove empty strings and null values for optional parameters
-    const parameters = Object.keys(toolParameters).reduce((acc, key) => {
-      const value = toolParameters[key];
-      if (value !== "" && value !== null && value !== undefined) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as Record<string, unknown>);
+    const parameters = Object.keys(toolParameters).reduce(
+      (acc, key) => {
+        const value = toolParameters[key];
+        if (value !== "" && value !== null && value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>,
+    );
 
     try {
       // Use HTTP as primary method, WebSocket only when explicitly connected
       if (wsConnected) {
-        console.log('📡 Using WebSocket for real-time tool execution');
-        const executionId = await wsExecute(selectedServer, selectedTool, parameters);
-        console.log('✅ WebSocket execution started:', executionId);
+        console.log("📡 Using WebSocket for real-time tool execution");
+        const executionId = await wsExecute(
+          selectedServer,
+          selectedTool,
+          parameters,
+        );
+        console.log("✅ WebSocket execution started:", executionId);
       } else {
         // HTTP is the default method (not a fallback)
-        console.log('🔄 Using HTTP API for tool execution');
+        console.log("🔄 Using HTTP API for tool execution");
 
         const execution: ToolExecution = {
           serverId: selectedServer,
@@ -199,48 +249,61 @@ const ToolExecutionInterface: React.FC = () => {
           parameters,
           timestamp: new Date(),
           status: "running",
-          source: "http"
+          source: "http",
         };
 
-        setExecutions(prev => [execution, ...prev]);
+        setExecutions((prev) => [execution, ...prev]);
 
         try {
-          const response = await fetch(`http://localhost:6287/api/dashboard/servers/${selectedServer}/tools/${selectedTool}/execute`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            `http://localhost:6287/api/dashboard/servers/${selectedServer}/tools/${selectedTool}/execute`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ parameters }),
             },
-            body: JSON.stringify({ parameters })
-          });
+          );
 
           const result = await response.json();
 
           if (!response.ok) {
             // Handle HTTP error responses (including timeouts) as errors
-            setExecutions(prev => prev.map(exec =>
-              exec === execution
-                ? { ...exec, status: "error", error: result.error || `HTTP ${response.status}` }
-                : exec
-            ));
+            setExecutions((prev) =>
+              prev.map((exec) =>
+                exec === execution
+                  ? {
+                      ...exec,
+                      status: "error",
+                      error: result.error || `HTTP ${response.status}`,
+                    }
+                  : exec,
+              ),
+            );
           } else {
             // Handle successful responses
-            setExecutions(prev => prev.map(exec =>
-              exec === execution
-                ? { ...exec, status: "completed", result }
-                : exec
-            ));
+            setExecutions((prev) =>
+              prev.map((exec) =>
+                exec === execution
+                  ? { ...exec, status: "completed", result }
+                  : exec,
+              ),
+            );
           }
         } catch (error) {
           // Handle network errors or JSON parsing errors
-          setExecutions(prev => prev.map(exec =>
-            exec === execution
-              ? { ...exec, status: "error", error: String(error) }
-              : exec
-          ));
+          setExecutions((prev) =>
+            prev.map((exec) =>
+              exec === execution
+                ? { ...exec, status: "error", error: String(error) }
+                : exec,
+            ),
+          );
         }
       }
     } catch (error) {
-      console.error('❌ Tool execution failed:', error);
+      console.error("❌ Tool execution failed:", error);
 
       // Create error execution record for display
       const errorExecution: ToolExecution = {
@@ -250,17 +313,19 @@ const ToolExecutionInterface: React.FC = () => {
         timestamp: new Date(),
         status: "error",
         error: String(error),
-        source: wsConnected ? "websocket" : "http"
+        source: wsConnected ? "websocket" : "http",
       };
 
-      setExecutions(prev => [errorExecution, ...prev]);
+      setExecutions((prev) => [errorExecution, ...prev]);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedServerData = servers.find(s => s.id === selectedServer);
-  const selectedToolData = selectedServerData?.tools?.find(t => t.name === selectedTool);
+  const selectedServerData = servers.find((s) => s.id === selectedServer);
+  const selectedToolData = selectedServerData?.tools?.find(
+    (t) => t.name === selectedTool,
+  );
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString();
@@ -291,16 +356,32 @@ const ToolExecutionInterface: React.FC = () => {
       case "preparing":
         return <Badge variant="secondary">Preparing</Badge>;
       case "connecting":
-        return <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">Connecting</Badge>;
+        return (
+          <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+            Connecting
+          </Badge>
+        );
       case "executing":
       case "running":
-        return <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">Running</Badge>;
+        return (
+          <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            Running
+          </Badge>
+        );
       case "completed":
-        return <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Completed</Badge>;
+        return (
+          <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+            Completed
+          </Badge>
+        );
       case "error":
         return <Badge variant="destructive">Error</Badge>;
       case "cancelled":
-        return <Badge className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">Cancelled</Badge>;
+        return (
+          <Badge className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
+            Cancelled
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">Unknown</Badge>;
     }
@@ -344,18 +425,22 @@ const ToolExecutionInterface: React.FC = () => {
       </div>
       <div className="flex items-center space-x-2">
         {execution.source === "websocket" &&
-         execution.executionId &&
-         (execution.status === "preparing" || execution.status === "connecting" || execution.status === "executing") && (
-          <Button
-            onClick={() => execution.executionId && onCancel(execution.executionId)}
-            variant="outline"
-            size="sm"
-            className="h-6 px-2 text-xs"
-          >
-            <StopCircle className="h-3 w-3 mr-1" />
-            Cancel
-          </Button>
-        )}
+          execution.executionId &&
+          (execution.status === "preparing" ||
+            execution.status === "connecting" ||
+            execution.status === "executing") && (
+            <Button
+              onClick={() =>
+                execution.executionId && onCancel(execution.executionId)
+              }
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-xs"
+            >
+              <StopCircle className="h-3 w-3 mr-1" />
+              Cancel
+            </Button>
+          )}
         <span className="text-sm text-muted-foreground">
           {formatTimestamp(execution.timestamp)}
         </span>
@@ -364,10 +449,12 @@ const ToolExecutionInterface: React.FC = () => {
   );
 
   interface ExecutionProgressProps {
-    progress: ToolExecution['progress'];
+    progress: ToolExecution["progress"];
   }
 
-  const ExecutionProgress: React.FC<ExecutionProgressProps> = ({ progress }) => {
+  const ExecutionProgress: React.FC<ExecutionProgressProps> = ({
+    progress,
+  }) => {
     if (!progress) return null;
 
     return (
@@ -393,10 +480,12 @@ const ToolExecutionInterface: React.FC = () => {
   };
 
   interface ExecutionParametersProps {
-    parameters: ToolExecution['parameters'];
+    parameters: ToolExecution["parameters"];
   }
 
-  const ExecutionParameters: React.FC<ExecutionParametersProps> = ({ parameters }) => (
+  const ExecutionParameters: React.FC<ExecutionParametersProps> = ({
+    parameters,
+  }) => (
     <div className="text-sm text-muted-foreground mb-2">
       <p className="font-medium mb-1">Parameters:</p>
       <pre className="bg-muted/50 border p-2 rounded text-xs overflow-x-auto max-w-full whitespace-pre-wrap break-words">
@@ -406,11 +495,14 @@ const ToolExecutionInterface: React.FC = () => {
   );
 
   interface ExecutionResultProps {
-    result: ToolExecution['result'];
+    result: ToolExecution["result"];
     executionKey: string; // Unique key for this execution result
   }
 
-  const ExecutionResult: React.FC<ExecutionResultProps> = ({ result, executionKey }) => {
+  const ExecutionResult: React.FC<ExecutionResultProps> = ({
+    result,
+    executionKey,
+  }) => {
     if (!result) return null;
 
     return (
@@ -429,7 +521,7 @@ const ToolExecutionInterface: React.FC = () => {
   };
 
   interface ExecutionErrorProps {
-    error: ToolExecution['error'];
+    error: ToolExecution["error"];
   }
 
   const ExecutionError: React.FC<ExecutionErrorProps> = ({ error }) => {
@@ -440,7 +532,7 @@ const ToolExecutionInterface: React.FC = () => {
         <p className="text-red-700 font-medium mb-2">Error:</p>
         <div className="bg-muted/50 border border-red-200 dark:border-red-800 rounded max-h-32 overflow-auto">
           <pre className="p-3 text-xs whitespace-pre-wrap break-words max-w-full">
-            {error || ''}
+            {error || ""}
           </pre>
         </div>
       </div>
@@ -461,7 +553,10 @@ const ToolExecutionInterface: React.FC = () => {
 
     return Object.entries(properties).map(([paramName, paramSchema]) => {
       const isRequired = required.includes(paramName);
-      const value = typeof toolParameters[paramName] === 'string' ? toolParameters[paramName] : '';
+      const value =
+        typeof toolParameters[paramName] === "string"
+          ? toolParameters[paramName]
+          : "";
 
       // Handle different parameter types
       const renderField = () => {
@@ -469,18 +564,20 @@ const ToolExecutionInterface: React.FC = () => {
         let schema = paramSchema;
         if (paramSchema.anyOf) {
           // Find the non-null type
-          schema = paramSchema.anyOf.find((s: ToolProperty) => s.type !== 'null') || paramSchema.anyOf[0];
+          schema =
+            paramSchema.anyOf.find((s: ToolProperty) => s.type !== "null") ||
+            paramSchema.anyOf[0];
         }
 
         const handleChange = (newValue: unknown) => {
-          setToolParameters(prev => ({
+          setToolParameters((prev) => ({
             ...prev,
-            [paramName]: newValue
+            [paramName]: newValue,
           }));
         };
 
         switch (schema.type) {
-          case 'string':
+          case "string":
             if (schema.enum) {
               // Dropdown for enum values
               return (
@@ -497,7 +594,11 @@ const ToolExecutionInterface: React.FC = () => {
                   </SelectContent>
                 </Select>
               );
-            } else if (schema.format === 'textarea' || (schema.description?.includes('long') || schema.description?.includes('text'))) {
+            } else if (
+              schema.format === "textarea" ||
+              schema.description?.includes("long") ||
+              schema.description?.includes("text")
+            ) {
               // Multi-line text area for long strings
               return (
                 <Textarea
@@ -519,36 +620,49 @@ const ToolExecutionInterface: React.FC = () => {
               );
             }
 
-          case 'number':
-          case 'integer':
+          case "number":
+          case "integer":
             return (
               <Input
                 type="number"
                 value={value}
                 onChange={(e) => {
-                  const numValue = e.target.value === '' ? '' : (schema.type === 'integer' ? parseInt(e.target.value) : parseFloat(e.target.value));
+                  const numValue =
+                    e.target.value === ""
+                      ? ""
+                      : schema.type === "integer"
+                        ? parseInt(e.target.value)
+                        : parseFloat(e.target.value);
                   handleChange(numValue);
                 }}
                 placeholder={schema.description || `Enter ${paramName}`}
-                step={schema.type === 'integer' ? 1 : 0.01}
+                step={schema.type === "integer" ? 1 : 0.01}
               />
             );
 
-          case 'boolean':
+          case "boolean":
             return (
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  checked={value === 'true'}
+                  checked={value === "true"}
                   onCheckedChange={(checked) => handleChange(checked)}
                 />
-                <span className="text-sm">{schema.description || `Enable ${paramName}`}</span>
+                <span className="text-sm">
+                  {schema.description || `Enable ${paramName}`}
+                </span>
               </div>
             );
 
-          case 'array':
+          case "array":
             return (
               <Textarea
-                value={Array.isArray(value) ? JSON.stringify(value, null, 2) : (typeof value === 'string' ? value : '')}
+                value={
+                  Array.isArray(value)
+                    ? JSON.stringify(value, null, 2)
+                    : typeof value === "string"
+                      ? value
+                      : ""
+                }
                 onChange={(e) => {
                   try {
                     const parsed = JSON.parse(e.target.value);
@@ -566,10 +680,16 @@ const ToolExecutionInterface: React.FC = () => {
               />
             );
 
-          case 'object':
+          case "object":
             return (
               <Textarea
-                value={typeof value === 'object' ? JSON.stringify(value, null, 2) : (typeof value === 'string' ? value : '')}
+                value={
+                  typeof value === "object"
+                    ? JSON.stringify(value, null, 2)
+                    : typeof value === "string"
+                      ? value
+                      : ""
+                }
                 onChange={(e) => {
                   try {
                     const parsed = JSON.parse(e.target.value);
@@ -588,7 +708,13 @@ const ToolExecutionInterface: React.FC = () => {
             return (
               <Input
                 type="text"
-                value={typeof value === 'string' ? value : (typeof value === 'number' ? String(value) : '')}
+                value={
+                  typeof value === "string"
+                    ? value
+                    : typeof value === "number"
+                      ? String(value)
+                      : ""
+                }
                 onChange={(e) => handleChange(e.target.value)}
                 placeholder={schema.description || `Enter ${paramName}`}
               />
@@ -603,23 +729,32 @@ const ToolExecutionInterface: React.FC = () => {
             {isRequired && <span className="text-red-500 ml-1">*</span>}
           </Label>
           {paramSchema.description && (
-            <p className="text-xs text-muted-foreground">{paramSchema.description}</p>
+            <p className="text-xs text-muted-foreground">
+              {paramSchema.description}
+            </p>
           )}
           {renderField()}
           {paramSchema.default !== undefined && (
-            <p className="text-xs text-muted-foreground">Default: {JSON.stringify(paramSchema.default) || 'undefined'}</p>
+            <p className="text-xs text-muted-foreground">
+              Default: {JSON.stringify(paramSchema.default) || "undefined"}
+            </p>
           )}
         </div>
       );
     });
   };
 
-  const renderExecutionItem = (execution: ToolExecution): React.ReactElement => {
+  const renderExecutionItem = (
+    execution: ToolExecution,
+  ): React.ReactElement => {
     // Use stable key based on execution properties instead of array index
     const stableKey = `${execution.timestamp.getTime()}-${execution.toolName}-${execution.serverId}`;
 
     return (
-      <div key={stableKey} className="border rounded-lg p-4 max-w-full overflow-hidden">
+      <div
+        key={stableKey}
+        className="border rounded-lg p-4 max-w-full overflow-hidden"
+      >
         <ExecutionHeader
           execution={execution}
           onCancel={wsCancel}
@@ -682,8 +817,15 @@ const ToolExecutionInterface: React.FC = () => {
             )}
           </div>
         </div>
-        <Button onClick={fetchServersAndTools} disabled={discovering} variant="outline" size="sm">
-          <RefreshCw className={`h-4 w-4 mr-2 ${discovering ? 'animate-spin' : ''}`} />
+        <Button
+          onClick={fetchServersAndTools}
+          disabled={discovering}
+          variant="outline"
+          size="sm"
+        >
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${discovering ? "animate-spin" : ""}`}
+          />
           Refresh Tools
         </Button>
       </div>
@@ -695,9 +837,13 @@ const ToolExecutionInterface: React.FC = () => {
           <CardDescription>
             Select a server and tool to execute with custom parameters.
             {wsConnected ? (
-              <span className="text-green-700 ml-2">✨ Real-time mode active - see live progress</span>
+              <span className="text-green-700 ml-2">
+                ✨ Real-time mode active - see live progress
+              </span>
             ) : (
-              <span className="text-muted-foreground ml-2">Uses HTTP API (enable real-time for progress updates)</span>
+              <span className="text-muted-foreground ml-2">
+                Uses HTTP API (enable real-time for progress updates)
+              </span>
             )}
           </CardDescription>
         </CardHeader>
@@ -710,23 +856,29 @@ const ToolExecutionInterface: React.FC = () => {
                   <SelectValue placeholder="Select a server" />
                 </SelectTrigger>
                 <SelectContent>
-                  {servers.filter(s => s.status === "connected").map(server => (
-                    <SelectItem key={server.id} value={server.id}>
-                      {server.name} ({server.tools?.length || 0} tools)
-                    </SelectItem>
-                  ))}
+                  {servers
+                    .filter((s) => s.status === "connected")
+                    .map((server) => (
+                      <SelectItem key={server.id} value={server.id}>
+                        {server.name} ({server.tools?.length || 0} tools)
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="text-sm font-medium">Tool</label>
-              <Select value={selectedTool} onValueChange={setSelectedTool} disabled={!selectedServer}>
+              <Select
+                value={selectedTool}
+                onValueChange={setSelectedTool}
+                disabled={!selectedServer}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a tool" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedServerData?.tools?.map(tool => (
+                  {selectedServerData?.tools?.map((tool) => (
                     <SelectItem key={tool.name} value={tool.name}>
                       {tool.name}
                     </SelectItem>
@@ -739,18 +891,22 @@ const ToolExecutionInterface: React.FC = () => {
           {selectedToolData && (
             <div className="p-4 bg-muted/50 rounded-lg">
               <h4 className="font-medium mb-2">{selectedToolData.name}</h4>
-              <p className="text-sm text-muted-foreground mb-3">{selectedToolData.description}</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                {selectedToolData.description}
+              </p>
 
-              {selectedToolData.inputSchema && selectedToolData.inputSchema.required && selectedToolData.inputSchema.required.length > 0 && (
-                <div className="text-sm">
-                  <p className="font-medium mb-1">Required Parameters:</p>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    {selectedToolData.inputSchema.required.map(param => (
-                      <li key={param}>{param}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {selectedToolData.inputSchema &&
+                selectedToolData.inputSchema.required &&
+                selectedToolData.inputSchema.required.length > 0 && (
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Required Parameters:</p>
+                    <ul className="list-disc list-inside text-muted-foreground">
+                      {selectedToolData.inputSchema.required.map((param) => (
+                        <li key={param}>{param}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
             </div>
           )}
 
@@ -776,7 +932,9 @@ const ToolExecutionInterface: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Execution History</CardTitle>
-          <CardDescription>Recent tool executions and their results</CardDescription>
+          <CardDescription>
+            Recent tool executions and their results
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div

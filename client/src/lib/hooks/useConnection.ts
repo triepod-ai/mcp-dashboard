@@ -110,7 +110,9 @@ export function useConnection({
   const [clientTransport, setClientTransport] = useState<Transport | null>(
     null,
   );
-  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>([]);
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>(
+    [],
+  );
   const [completionsSupported, setCompletionsSupported] = useState(false);
   const [mcpSessionId, setMcpSessionId] = useState<string | null>(null);
   const [mcpProtocolVersion, setMcpProtocolVersion] = useState<string | null>(

@@ -94,7 +94,10 @@ export class ServerConnectionManager extends EventEmitter {
       throw new Error(`Server '${serverId}' not found`);
     }
 
-    if (connection.status === "connected" || connection.status === "connecting") {
+    if (
+      connection.status === "connected" ||
+      connection.status === "connecting"
+    ) {
       return; // Already connected or connecting
     }
 
@@ -106,12 +109,15 @@ export class ServerConnectionManager extends EventEmitter {
       connection.transport = transport;
 
       // Create MCP client
-      const client = new Client({
-        name: "mcp-dashboard",
-        version: "1.0.0"
-      }, {
-        capabilities: {}
-      });
+      const client = new Client(
+        {
+          name: "mcp-dashboard",
+          version: "1.0.0",
+        },
+        {
+          capabilities: {},
+        },
+      );
 
       // Connect the client to the transport and perform handshake
       await client.connect(transport);
@@ -146,7 +152,10 @@ export class ServerConnectionManager extends EventEmitter {
       try {
         await connection.transport.close();
       } catch (error) {
-        console.warn(`Error closing transport for server '${serverId}':`, error);
+        console.warn(
+          `Error closing transport for server '${serverId}':`,
+          error,
+        );
       }
     }
 
@@ -209,8 +218,8 @@ export class ServerConnectionManager extends EventEmitter {
    */
   async broadcastToServers(message: any): Promise<void> {
     const promises = Array.from(this.connections.values())
-      .filter(conn => conn.status === "connected")
-      .map(conn => conn.transport.send(message));
+      .filter((conn) => conn.status === "connected")
+      .map((conn) => conn.transport.send(message));
 
     await Promise.allSettled(promises);
   }
@@ -221,10 +230,10 @@ export class ServerConnectionManager extends EventEmitter {
   getStatusSummary() {
     const total = this.connections.size;
     const connected = Array.from(this.connections.values()).filter(
-      conn => conn.status === "connected"
+      (conn) => conn.status === "connected",
     ).length;
     const errors = Array.from(this.connections.values()).filter(
-      conn => conn.status === "error"
+      (conn) => conn.status === "error",
     ).length;
 
     return {
@@ -238,41 +247,46 @@ export class ServerConnectionManager extends EventEmitter {
         status: conn.status,
         lastConnected: conn.lastConnected,
         lastError: conn.lastError?.message,
-      }))
+      })),
     };
   }
 
   /**
    * Load servers from configuration
    */
-  async loadFromConfig(config: { mcpServers: Record<string, any> }, configPath?: string): Promise<void> {
+  async loadFromConfig(
+    config: { mcpServers: Record<string, any> },
+    configPath?: string,
+  ): Promise<void> {
     // Update config path if provided
     if (configPath) {
       this.configFilePath = configPath;
     }
 
-    const promises = Object.entries(config.mcpServers).map(([id, serverConfig]) => {
-      const fullConfig: ServerConfig = {
-        id,
-        name: serverConfig.name || id,
-        command: serverConfig.command,
-        args: serverConfig.args || [],
-        env: serverConfig.env || {},
-        transport: serverConfig.transport || "stdio",
-        serverUrl: serverConfig.serverUrl,
-        enabled: serverConfig.enabled !== false, // Default to true
-      };
+    const promises = Object.entries(config.mcpServers).map(
+      ([id, serverConfig]) => {
+        const fullConfig: ServerConfig = {
+          id,
+          name: serverConfig.name || id,
+          command: serverConfig.command,
+          args: serverConfig.args || [],
+          env: serverConfig.env || {},
+          transport: serverConfig.transport || "stdio",
+          serverUrl: serverConfig.serverUrl,
+          enabled: serverConfig.enabled !== false, // Default to true
+        };
 
-      // Add server without triggering saveConfiguration during initial load
-      return this.addServerWithoutSave(fullConfig, false);
-    });
+        // Add server without triggering saveConfiguration during initial load
+        return this.addServerWithoutSave(fullConfig, false);
+      },
+    );
 
     await Promise.all(promises);
 
     // Connect to enabled servers
     const enabledServers = Array.from(this.connections.values())
-      .filter(conn => conn.config.enabled)
-      .map(conn => this.connectServer(conn.config.id));
+      .filter((conn) => conn.config.enabled)
+      .map((conn) => this.connectServer(conn.config.id));
 
     await Promise.allSettled(enabledServers);
   }
@@ -280,7 +294,10 @@ export class ServerConnectionManager extends EventEmitter {
   /**
    * Add a server without triggering saveConfiguration (for initial config loading)
    */
-  private async addServerWithoutSave(config: ServerConfig, autoConnect = true): Promise<void> {
+  private async addServerWithoutSave(
+    config: ServerConfig,
+    autoConnect = true,
+  ): Promise<void> {
     if (this.connections.has(config.id)) {
       throw new Error(`Server with id '${config.id}' already exists`);
     }
@@ -318,7 +335,9 @@ export class ServerConnectionManager extends EventEmitter {
 
       case "streamable-http":
         if (!config.serverUrl) {
-          throw new Error("serverUrl is required for streamable-http transport");
+          throw new Error(
+            "serverUrl is required for streamable-http transport",
+          );
         }
         return new StreamableHTTPClientTransport(new URL(config.serverUrl));
 
@@ -328,7 +347,10 @@ export class ServerConnectionManager extends EventEmitter {
           throw new Error("command is required for stdio transport");
         }
 
-        const { cmd, args } = await findActualExecutable(config.command, config.args || []);
+        const { cmd, args } = await findActualExecutable(
+          config.command,
+          config.args || [],
+        );
         if (!cmd) {
           throw new Error(`Command not found: ${config.command}`);
         }
@@ -370,7 +392,11 @@ export class ServerConnectionManager extends EventEmitter {
   /**
    * Emit a server-specific event
    */
-  private emitServerEvent(serverId: string, event: ServerEvent["event"], data?: any): void {
+  private emitServerEvent(
+    serverId: string,
+    event: ServerEvent["event"],
+    data?: any,
+  ): void {
     const serverEvent: ServerEvent = {
       serverId,
       event,
@@ -398,18 +424,21 @@ export class ServerConnectionManager extends EventEmitter {
           env: config.env || {},
           transport: config.transport || "stdio",
           serverUrl: config.serverUrl,
-          enabled: config.enabled
+          enabled: config.enabled,
         };
       }
 
       const configData = {
-        mcpServers
+        mcpServers,
       };
 
       writeFileSync(this.configFilePath, JSON.stringify(configData, null, 2));
       console.log(`💾 Configuration saved to ${this.configFilePath}`);
     } catch (error) {
-      console.error("❌ Error saving configuration:", error instanceof Error ? error.message : String(error));
+      console.error(
+        "❌ Error saving configuration:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -425,7 +454,7 @@ export class ServerConnectionManager extends EventEmitter {
    */
   async cleanup(): Promise<void> {
     const disconnectPromises = Array.from(this.connections.keys()).map(
-      serverId => this.disconnectServer(serverId)
+      (serverId) => this.disconnectServer(serverId),
     );
 
     await Promise.allSettled(disconnectPromises);

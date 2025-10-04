@@ -3,10 +3,7 @@
  * Tests tool functionality and basic operations
  */
 
-import {
-  FunctionalityAssessment,
-  ToolTestResult,
-} from "@/lib/assessmentTypes";
+import { FunctionalityAssessment, ToolTestResult } from "@/lib/assessmentTypes";
 import { BaseAssessor } from "./BaseAssessor";
 import { AssessmentContext } from "../AssessmentOrchestrator";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
@@ -50,7 +47,7 @@ export class FunctionalityAssessor extends BaseAssessor {
     const totalTools = context.tools.length;
     const testedTools = toolResults.filter((r) => r.tested).length;
     const coveragePercentage =
-      totalTools > 0 ? (testedTools / totalTools) * 100 : 0;
+      totalTools > 0 ? (workingTools / totalTools) * 100 : 0;
 
     const status = this.determineStatus(workingTools, testedTools);
     const explanation = this.generateExplanation(
@@ -74,7 +71,10 @@ export class FunctionalityAssessor extends BaseAssessor {
 
   private async testTool(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ToolTestResult> {
     const startTime = Date.now();
 
@@ -87,16 +87,24 @@ export class FunctionalityAssessor extends BaseAssessor {
 
       // Log tool schema for debugging
       if (tool.inputSchema) {
-        const schema = typeof tool.inputSchema === "string"
-          ? this.safeJsonParse(tool.inputSchema)
-          : tool.inputSchema;
-        this.log(`📊 Tool schema required: ${JSON.stringify((schema as any)?.required || [])}`);
+        const schema =
+          typeof tool.inputSchema === "string"
+            ? this.safeJsonParse(tool.inputSchema)
+            : tool.inputSchema;
+        this.log(
+          `📊 Tool schema required: ${JSON.stringify((schema as any)?.required || [])}`,
+        );
       }
 
       // Validate parameters against schema
-      const validationResult = this.validateParams(testParams, tool.inputSchema);
+      const validationResult = this.validateParams(
+        testParams,
+        tool.inputSchema,
+      );
       if (!validationResult.valid) {
-        this.log(`❌ Parameter validation failed for ${tool.name}: ${validationResult.errors.join(", ")}`);
+        this.log(
+          `❌ Parameter validation failed for ${tool.name}: ${validationResult.errors.join(", ")}`,
+        );
         return {
           toolName: tool.name,
           tested: true,
@@ -116,7 +124,9 @@ export class FunctionalityAssessor extends BaseAssessor {
 
       const executionTime = Date.now() - startTime;
       this.log(`⏱️ Tool ${tool.name} executed in ${executionTime}ms`);
-      this.log(`📤 Tool response for ${tool.name}: ${JSON.stringify(response, null, 2)}`);
+      this.log(
+        `📤 Tool response for ${tool.name}: ${JSON.stringify(response, null, 2)}`,
+      );
 
       // Enhanced error detection
       const errorInfo = this.analyzeResponse(response);
@@ -142,10 +152,11 @@ export class FunctionalityAssessor extends BaseAssessor {
         testParameters: testParams,
         response,
       };
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      this.log(`💥 Tool test failed for ${tool.name}: ${error instanceof Error ? error.message : String(error)}`);
+      this.log(
+        `💥 Tool test failed for ${tool.name}: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return {
         toolName: tool.name,
         tested: true,
@@ -153,6 +164,50 @@ export class FunctionalityAssessor extends BaseAssessor {
         error: this.extractErrorMessage(error),
         executionTime,
       };
+    }
+  }
+
+  /**
+   * Generate test input for a given JSON schema
+   * This is a simpler version used for unit testing
+   */
+  private generateTestInput(schema: any): unknown {
+    if (!schema || !schema.type) {
+      return {};
+    }
+
+    switch (schema.type) {
+      case "string":
+        return "test";
+
+      case "number":
+        return 42;
+
+      case "integer":
+        return 42;
+
+      case "boolean":
+        return true;
+
+      case "array":
+        if (schema.items) {
+          const itemValue = this.generateTestInput(schema.items);
+          return [itemValue];
+        }
+        return ["test"];
+
+      case "object":
+        if (schema.properties) {
+          const obj: Record<string, unknown> = {};
+          for (const [key, propSchema] of Object.entries(schema.properties)) {
+            obj[key] = this.generateTestInput(propSchema);
+          }
+          return obj;
+        }
+        return {};
+
+      default:
+        return null;
     }
   }
 
@@ -169,40 +224,36 @@ export class FunctionalityAssessor extends BaseAssessor {
     const params: Record<string, unknown> = {};
     const required = schema.required || [];
 
-    console.log(`🧪 Generating params for ${tool.name}, required: [${required.join(', ')}]`);
+    console.log(
+      `🧪 Generating params for ${tool.name}, required: [${required.join(", ")}]`,
+    );
 
-    // ALWAYS include required parameters
-    for (const requiredKey of required) {
-      if (schema.properties[requiredKey] && isJSONSchemaProperty(schema.properties[requiredKey])) {
-        params[requiredKey] = this.generateSmartParamValue(
-          schema.properties[requiredKey],
-          requiredKey,
-          tool.name
-        );
-        console.log(`✅ Required param ${requiredKey}:`, params[requiredKey]);
-      }
-    }
-
-    // Only include optional parameters if the tool has required parameters
-    // Tools with no required parameters likely work without any parameters
-    if (required.length > 0) {
-      for (const [key, prop] of Object.entries(
-        schema.properties as Record<string, unknown>,
-      )) {
-        if (!required.includes(key) && isJSONSchemaProperty(prop) && this.shouldIncludeOptional(prop, key)) {
-          params[key] = this.generateSmartParamValue(prop, key, tool.name);
-          console.log(`📝 Optional param ${key}:`, params[key]);
+    // Generate params for all properties (both required and optional)
+    for (const [key, prop] of Object.entries(
+      schema.properties as Record<string, unknown>,
+    )) {
+      if (isJSONSchemaProperty(prop)) {
+        // Skip optional params that shouldn't be included (based on shouldIncludeOptional)
+        const isRequired = required.includes(key);
+        if (!isRequired && !this.shouldIncludeOptional(prop, key)) {
+          continue;
         }
+
+        params[key] = this.generateSmartParamValue(prop, key, tool.name);
+        const paramType = isRequired ? "Required" : "Optional";
+        console.log(`${isRequired ? "✅" : "📝"} ${paramType} param ${key}:`, params[key]);
       }
-    } else {
-      console.log(`🚫 Skipping optional params for ${tool.name} - no required params suggests tool works without parameters`);
     }
 
     console.log(`🎯 Final params for ${tool.name}:`, params);
     return params;
   }
 
-  private generateSmartParamValue(prop: any, paramName: string, toolName: string): unknown {
+  private generateSmartParamValue(
+    prop: any,
+    paramName: string,
+    toolName: string,
+  ): unknown {
     const type = prop.type;
 
     switch (type) {
@@ -213,18 +264,27 @@ export class FunctionalityAssessor extends BaseAssessor {
 
         // Context-aware defaults based on parameter name
         const lowerParam = paramName.toLowerCase();
-        if (lowerParam.includes("path") || lowerParam.includes("file")) return "/tmp/test.txt";
-        if (lowerParam.includes("query") || lowerParam.includes("search")) return "test query";
+        if (lowerParam.includes("path") || lowerParam.includes("file"))
+          return "/tmp/test.txt";
+        if (lowerParam.includes("query") || lowerParam.includes("search"))
+          return "test query";
         if (lowerParam.includes("name")) return "test_name";
         if (lowerParam.includes("id")) return "test_id_123";
         if (lowerParam.includes("collection")) return "test_collection";
-        if (lowerParam.includes("text") || lowerParam.includes("content") || lowerParam.includes("information")) return "This is test content for MCP assessment";
+        if (
+          lowerParam.includes("text") ||
+          lowerParam.includes("content") ||
+          lowerParam.includes("information")
+        )
+          return "This is test content for MCP assessment";
         if (lowerParam.includes("url")) return "https://example.com";
         if (lowerParam.includes("description")) return "Test description";
 
         // Respect string constraints
         const minLength = prop.minLength || 1;
-        return prop.minLength ? "test_".repeat(Math.ceil(minLength / 5)).substring(0, minLength) : "test";
+        return prop.minLength
+          ? "test_".repeat(Math.ceil(minLength / 5)).substring(0, minLength)
+          : "test";
 
       case "number":
       case "integer":
@@ -238,8 +298,14 @@ export class FunctionalityAssessor extends BaseAssessor {
       case "array":
         // Generate non-empty array for better testing
         if (prop.items && prop.items.type) {
-          const itemValue = this.generateSmartParamValue(prop.items, `${paramName}_item`, toolName);
-          return prop.minItems > 0 ? Array(prop.minItems).fill(itemValue) : [itemValue];
+          const itemValue = this.generateSmartParamValue(
+            prop.items,
+            `${paramName}_item`,
+            toolName,
+          );
+          return prop.minItems > 0
+            ? Array(prop.minItems).fill(itemValue)
+            : [itemValue];
         }
         return prop.minItems > 0 ? Array(prop.minItems).fill("test") : ["test"];
 
@@ -254,7 +320,7 @@ export class FunctionalityAssessor extends BaseAssessor {
               obj[reqKey] = this.generateSmartParamValue(
                 prop.properties[reqKey],
                 reqKey,
-                toolName
+                toolName,
               );
             }
           }
@@ -271,12 +337,21 @@ export class FunctionalityAssessor extends BaseAssessor {
     // Include optional parameters that are commonly important
     const lowerParam = paramName.toLowerCase();
     const importantParams = [
-      "collection", "metadata", "options", "config", "settings",
-      "format", "type", "mode", "timeout", "limit", "offset"
+      "collection",
+      "metadata",
+      "options",
+      "config",
+      "settings",
+      "format",
+      "type",
+      "mode",
+      "timeout",
+      "limit",
+      "offset",
     ];
 
     // Include if it's an important parameter name
-    if (importantParams.some(important => lowerParam.includes(important))) {
+    if (importantParams.some((important) => lowerParam.includes(important))) {
       return true;
     }
 
@@ -290,18 +365,24 @@ export class FunctionalityAssessor extends BaseAssessor {
       return true;
     }
 
-    // Skip other optional parameters to keep tests minimal
-    return false;
+    // Include all other optional parameters for comprehensive testing
+    return true;
   }
 
-  private validateParams(params: Record<string, unknown>, inputSchema: any): { valid: boolean; errors: string[] } {
+  private validateParams(
+    params: Record<string, unknown>,
+    inputSchema: any,
+  ): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!inputSchema) {
       return { valid: true, errors: [] }; // No schema to validate against
     }
 
-    const schema = typeof inputSchema === "string" ? this.safeJsonParse(inputSchema) : inputSchema;
+    const schema =
+      typeof inputSchema === "string"
+        ? this.safeJsonParse(inputSchema)
+        : inputSchema;
 
     if (!schema || !schema.properties) {
       return { valid: true, errors: [] };
@@ -326,12 +407,14 @@ export class FunctionalityAssessor extends BaseAssessor {
       const propSchema = schema.properties[key];
       if (propSchema && propSchema.type) {
         const expectedType = propSchema.type;
-        const actualType = Array.isArray(value) ? 'array' : typeof value;
+        const actualType = Array.isArray(value) ? "array" : typeof value;
 
         if (expectedType !== actualType) {
           // Allow some type flexibility
-          if (!(expectedType === 'integer' && actualType === 'number')) {
-            errors.push(`Parameter ${key} should be ${expectedType}, got ${actualType}`);
+          if (!(expectedType === "integer" && actualType === "number")) {
+            errors.push(
+              `Parameter ${key} should be ${expectedType}, got ${actualType}`,
+            );
           }
         }
       }
@@ -340,42 +423,70 @@ export class FunctionalityAssessor extends BaseAssessor {
     return { valid: errors.length === 0, errors };
   }
 
-  private analyzeResponse(response: unknown): { isError: boolean; message: string } {
+  private analyzeResponse(response: unknown): {
+    isError: boolean;
+    message: string;
+  } {
     if (!response) {
       return { isError: true, message: "No response received" };
     }
 
     // Check various error patterns
-    if (typeof response === 'object' && response !== null) {
+    if (typeof response === "object" && response !== null) {
       const obj = response as any;
 
       // Direct error indicators
       if (obj.isError === true) {
-        return { isError: true, message: obj.error || obj.message || "Error response" };
+        return {
+          isError: true,
+          message: obj.error || obj.message || "Error response",
+        };
       }
 
       if (obj.error) {
-        return { isError: true, message: typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error) };
+        return {
+          isError: true,
+          message:
+            typeof obj.error === "string"
+              ? obj.error
+              : JSON.stringify(obj.error),
+        };
       }
 
       // Check result object for errors
-      if (obj.result && typeof obj.result === 'object') {
+      if (obj.result && typeof obj.result === "object") {
         if (obj.result.error || obj.result.isError) {
-          return { isError: true, message: obj.result.error || obj.result.message || "Error in result" };
+          return {
+            isError: true,
+            message:
+              obj.result.error || obj.result.message || "Error in result",
+          };
         }
       }
 
       // Check content array for error types
       if (Array.isArray(obj.content)) {
         for (const content of obj.content) {
-          if (content && typeof content === 'object') {
-            if (content.type === 'error' || content.error || content.isError) {
-              return { isError: true, message: content.text || content.error || content.message || "Error in content" };
+          if (content && typeof content === "object") {
+            if (content.type === "error" || content.error || content.isError) {
+              return {
+                isError: true,
+                message:
+                  content.text ||
+                  content.error ||
+                  content.message ||
+                  "Error in content",
+              };
             }
             // Check for error indicators in text content
-            if (content.type === 'text' && typeof content.text === 'string') {
+            if (content.type === "text" && typeof content.text === "string") {
               const text = content.text.toLowerCase();
-              if (text.includes('error') || text.includes('failed') || text.includes('invalid') || text.includes('unknown tool')) {
+              if (
+                text.includes("error") ||
+                text.includes("failed") ||
+                text.includes("invalid") ||
+                text.includes("unknown tool")
+              ) {
                 return { isError: true, message: content.text };
               }
             }
@@ -384,15 +495,22 @@ export class FunctionalityAssessor extends BaseAssessor {
       }
 
       // Check for HTTP error status codes
-      if (obj.status && typeof obj.status === 'number' && obj.status >= 400) {
-        return { isError: true, message: `HTTP ${obj.status}: ${obj.statusText || 'Error'}` };
+      if (obj.status && typeof obj.status === "number" && obj.status >= 400) {
+        return {
+          isError: true,
+          message: `HTTP ${obj.status}: ${obj.statusText || "Error"}`,
+        };
       }
     }
 
     // String responses that indicate errors
-    if (typeof response === 'string') {
+    if (typeof response === "string") {
       const lowerResponse = response.toLowerCase();
-      if (lowerResponse.includes('error') || lowerResponse.includes('failed') || lowerResponse.includes('invalid')) {
+      if (
+        lowerResponse.includes("error") ||
+        lowerResponse.includes("failed") ||
+        lowerResponse.includes("invalid")
+      ) {
         return { isError: true, message: response };
       }
     }
@@ -405,11 +523,11 @@ export class FunctionalityAssessor extends BaseAssessor {
       return error.message;
     }
 
-    if (typeof error === 'string') {
+    if (typeof error === "string") {
       return error;
     }
 
-    if (typeof error === 'object' && error !== null) {
+    if (typeof error === "object" && error !== null) {
       const obj = error as any;
       return obj.message || obj.error || JSON.stringify(error);
     }

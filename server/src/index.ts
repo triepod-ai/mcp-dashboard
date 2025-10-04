@@ -21,7 +21,7 @@ async function sendMCPRequestWithResponse(
   serverId: string,
   request: any,
   serverManager: ServerConnectionManager,
-  timeoutMs: number = 30000
+  timeoutMs: number = 30000,
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     const connection = serverManager.getConnection(serverId);
@@ -91,7 +91,12 @@ async function sendMCPRequestWithResponse(
 
 // WebSocket message types for streaming tool execution
 interface WebSocketMessage {
-  type: 'tool-execute' | 'tool-progress' | 'tool-result' | 'tool-error' | 'tool-cancel';
+  type:
+    | "tool-execute"
+    | "tool-progress"
+    | "tool-result"
+    | "tool-error"
+    | "tool-cancel";
   executionId: string;
   data: any;
 }
@@ -103,7 +108,10 @@ interface ToolExecutionRequest {
 }
 
 // Active tool executions for cancellation support
-const activeExecutions = new Map<string, { controller: AbortController; ws: WebSocket }>();
+const activeExecutions = new Map<
+  string,
+  { controller: AbortController; ws: WebSocket }
+>();
 
 // Enhanced streaming tool execution with progress feedback
 async function sendMCPRequestWithStreaming(
@@ -111,7 +119,7 @@ async function sendMCPRequestWithStreaming(
   request: any,
   serverManager: ServerConnectionManager,
   onProgress?: (progress: any) => void,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     const connection = serverManager.getConnection(serverId);
@@ -128,7 +136,7 @@ async function sendMCPRequestWithStreaming(
 
     // Check for cancellation
     if (abortSignal?.aborted) {
-      return reject(new Error('Operation was cancelled'));
+      return reject(new Error("Operation was cancelled"));
     }
 
     // Set up abort signal listener
@@ -136,17 +144,17 @@ async function sendMCPRequestWithStreaming(
       if (!responseReceived) {
         responseReceived = true;
         connection.transport.onmessage = originalOnMessage;
-        reject(new Error('Operation was cancelled'));
+        reject(new Error("Operation was cancelled"));
       }
     };
-    abortSignal?.addEventListener('abort', abortListener);
+    abortSignal?.addEventListener("abort", abortListener);
 
     // Set up timeout
     const timeout = setTimeout(() => {
       if (!responseReceived) {
         responseReceived = true;
         connection.transport.onmessage = originalOnMessage;
-        abortSignal?.removeEventListener('abort', abortListener);
+        abortSignal?.removeEventListener("abort", abortListener);
         reject(new Error(`Request timeout after 30000ms`));
       }
     }, 30000);
@@ -160,10 +168,13 @@ async function sendMCPRequestWithStreaming(
         if (message.id === requestId) {
           clearTimeout(timeout);
           responseReceived = true;
-          abortSignal?.removeEventListener('abort', abortListener);
+          abortSignal?.removeEventListener("abort", abortListener);
           connection.transport.onmessage = originalOnMessage;
           resolve(message);
-        } else if (message.method === 'notifications/progress' && message.params?.token === requestId) {
+        } else if (
+          message.method === "notifications/progress" &&
+          message.params?.token === requestId
+        ) {
           // Handle progress notifications
           onProgress?.(message.params);
         }
@@ -171,7 +182,7 @@ async function sendMCPRequestWithStreaming(
         if (!responseReceived) {
           responseReceived = true;
           clearTimeout(timeout);
-          abortSignal?.removeEventListener('abort', abortListener);
+          abortSignal?.removeEventListener("abort", abortListener);
           connection.transport.onmessage = originalOnMessage;
           reject(error);
         }
@@ -188,7 +199,7 @@ async function sendMCPRequestWithStreaming(
       if (!responseReceived) {
         responseReceived = true;
         clearTimeout(timeout);
-        abortSignal?.removeEventListener('abort', abortListener);
+        abortSignal?.removeEventListener("abort", abortListener);
         connection.transport.onmessage = originalOnMessage;
         reject(error);
       }
@@ -226,7 +237,8 @@ const multiProxy = new MultiServerProxy(serverManager);
 const sessions: Map<string, { id: string; transport: Transport }> = new Map();
 
 // Authentication setup
-const sessionToken = process.env.MCP_PROXY_AUTH_TOKEN || randomBytes(32).toString("hex");
+const sessionToken =
+  process.env.MCP_PROXY_AUTH_TOKEN || randomBytes(32).toString("hex");
 const authDisabled = values["no-auth"] || !!process.env.DANGEROUSLY_OMIT_AUTH;
 
 if (authDisabled) {
@@ -244,7 +256,9 @@ const originValidationMiddleware = (
   const origin = req.headers.origin;
   const clientPort = process.env.CLIENT_PORT || "6286";
   const defaultOrigin = `http://localhost:${clientPort}`;
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [defaultOrigin];
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+    defaultOrigin,
+  ];
 
   if (origin && !allowedOrigins.includes(origin)) {
     console.error(`Invalid origin: ${origin}`);
@@ -275,8 +289,10 @@ const authMiddleware = (
   const providedToken = Buffer.from(token);
   const expectedToken = Buffer.from(sessionToken);
 
-  if (providedToken.length !== expectedToken.length ||
-      !timingSafeEqual(providedToken, expectedToken)) {
+  if (
+    providedToken.length !== expectedToken.length ||
+    !timingSafeEqual(providedToken, expectedToken)
+  ) {
     return res.status(401).json({ error: "Invalid authentication token" });
   }
 
@@ -289,14 +305,18 @@ app.use("/sse/dashboard", (req, res) => {
   if (!authDisabled) {
     const token = req.query.token;
     if (!token || typeof token !== "string") {
-      return res.status(401).json({ error: "Authentication required. Add ?token=YOUR_TOKEN to the URL" });
+      return res.status(401).json({
+        error: "Authentication required. Add ?token=YOUR_TOKEN to the URL",
+      });
     }
 
     const providedToken = Buffer.from(token);
     const expectedToken = Buffer.from(sessionToken);
 
-    if (providedToken.length !== expectedToken.length ||
-        !timingSafeEqual(providedToken, expectedToken)) {
+    if (
+      providedToken.length !== expectedToken.length ||
+      !timingSafeEqual(providedToken, expectedToken)
+    ) {
       return res.status(401).json({ error: "Invalid authentication token" });
     }
   }
@@ -305,7 +325,7 @@ app.use("/sse/dashboard", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Cache-Control",
   });
@@ -314,10 +334,12 @@ app.use("/sse/dashboard", (req, res) => {
   console.log(`📡 SSE client connected: ${clientId}`);
 
   // Send initial connection event
-  res.write(`data: ${JSON.stringify({
-    type: "connection",
-    data: { clientId, timestamp: new Date().toISOString() }
-  })}\n\n`);
+  res.write(
+    `data: ${JSON.stringify({
+      type: "connection",
+      data: { clientId, timestamp: new Date().toISOString() },
+    })}\n\n`,
+  );
 
   // Send initial status
   const sendStatus = () => {
@@ -351,25 +373,31 @@ app.use("/sse/dashboard", (req, res) => {
 
   // Send heartbeat every 30 seconds
   const heartbeatInterval = setInterval(() => {
-    res.write(`data: ${JSON.stringify({
-      type: "heartbeat",
-      data: { timestamp: new Date().toISOString() }
-    })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        type: "heartbeat",
+        data: { timestamp: new Date().toISOString() },
+      })}\n\n`,
+    );
   }, 30000);
 
   // Event listeners for real-time updates
   const onServerEvent = (event: any) => {
-    res.write(`data: ${JSON.stringify({
-      type: "server-event",
-      data: event
-    })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        type: "server-event",
+        data: event,
+      })}\n\n`,
+    );
   };
 
   const onProxyEvent = (event: any) => {
-    res.write(`data: ${JSON.stringify({
-      type: "proxy-event",
-      data: event
-    })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        type: "proxy-event",
+        data: event,
+      })}\n\n`,
+    );
   };
 
   // Subscribe to events
@@ -412,7 +440,10 @@ app.post("/api/dashboard/servers/:id/connect", async (req, res) => {
     await serverManager.connectServer(req.params.id);
     res.json({ success: true, serverId: req.params.id });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
@@ -421,7 +452,10 @@ app.post("/api/dashboard/servers/:id/disconnect", async (req, res) => {
     await serverManager.disconnectServer(req.params.id);
     res.json({ success: true, serverId: req.params.id });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
@@ -441,7 +475,9 @@ app.post("/api/dashboard/servers", async (req, res) => {
     await serverManager.addServer(serverConfig);
     res.json({ success: true, server: serverConfig });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    res
+      .status(400)
+      .json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -450,7 +486,10 @@ app.delete("/api/dashboard/servers/:id", async (req, res) => {
     await serverManager.removeServer(req.params.id);
     res.json({ success: true, serverId: req.params.id });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
@@ -460,32 +499,51 @@ app.get("/api/dashboard/servers/:id/tools", async (req, res) => {
     const serverId = req.params.id;
     const connection = serverManager.getConnection(serverId);
 
-    console.log(`🔧 Tools request for ${serverId}:`, connection ? `status="${connection.status}" (type: ${typeof connection.status})` : 'not found');
+    console.log(
+      `🔧 Tools request for ${serverId}:`,
+      connection
+        ? `status="${connection.status}" (type: ${typeof connection.status})`
+        : "not found",
+    );
 
     if (!connection) {
       return res.status(404).json({ error: "Server not found", serverId });
     }
 
-    console.log(`🔍 Connection status check: "${connection.status}" !== "connected" is ${connection.status !== "connected"}`);
+    console.log(
+      `🔍 Connection status check: "${connection.status}" !== "connected" is ${connection.status !== "connected"}`,
+    );
 
     if (connection.status !== "connected") {
-      console.log(`❌ Connection not ready. Status: "${connection.status}", returning error`);
-      return res.status(400).json({ error: "Not connected", serverId, status: connection.status });
+      console.log(
+        `❌ Connection not ready. Status: "${connection.status}", returning error`,
+      );
+      return res
+        .status(400)
+        .json({ error: "Not connected", serverId, status: connection.status });
     }
 
-    console.log(`✅ Status check passed, proceeding with MCP tools/list call for ${serverId}`);
+    console.log(
+      `✅ Status check passed, proceeding with MCP tools/list call for ${serverId}`,
+    );
 
     // Make real MCP tools/list call
     const toolsListRequest = {
       jsonrpc: "2.0",
       id: `tools-list-${Date.now()}`,
       method: "tools/list",
-      params: {}
+      params: {},
     };
 
     // Use sendMCPRequestWithResponse to call tools/list (working approach)
-    console.log(`📡 Calling tools/list via sendMCPRequestWithResponse for ${serverId}`);
-    const response = await sendMCPRequestWithResponse(serverId, toolsListRequest, serverManager);
+    console.log(
+      `📡 Calling tools/list via sendMCPRequestWithResponse for ${serverId}`,
+    );
+    const response = await sendMCPRequestWithResponse(
+      serverId,
+      toolsListRequest,
+      serverManager,
+    );
     console.log(`📡 MCP response received:`, response);
 
     // sendMCPRequestWithResponse returns the raw JSON-RPC response
@@ -496,12 +554,18 @@ app.get("/api/dashboard/servers/:id/tools", async (req, res) => {
     }
   } catch (error) {
     console.log(`💥 Tools endpoint error for ${req.params.id}:`, error);
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
 // Tool execution endpoint - supports both /call and /execute for compatibility
-const toolExecutionHandler = async (req: express.Request, res: express.Response) => {
+const toolExecutionHandler = async (
+  req: express.Request,
+  res: express.Response,
+) => {
   try {
     const serverId = req.params.id;
     const toolName = req.params.toolName;
@@ -514,11 +578,18 @@ const toolExecutionHandler = async (req: express.Request, res: express.Response)
     }
 
     if (connection.status !== "connected") {
-      return res.status(400).json({ error: "Server not connected", serverId, status: connection.status });
+      return res.status(400).json({
+        error: "Server not connected",
+        serverId,
+        status: connection.status,
+      });
     }
 
     const startTime = Date.now();
-    console.log(`🛠️ Tool execution request for ${serverId}.${toolName} with parameters:`, parameters);
+    console.log(
+      `🛠️ Tool execution request for ${serverId}.${toolName} with parameters:`,
+      parameters,
+    );
 
     // Make real MCP tools/call request using the working pattern
     const toolCallRequest = {
@@ -527,12 +598,18 @@ const toolExecutionHandler = async (req: express.Request, res: express.Response)
       method: "tools/call",
       params: {
         name: toolName,
-        arguments: parameters
-      }
+        arguments: parameters,
+      },
     };
 
-    console.log(`🛠️ Calling tools/call via sendMCPRequestWithResponse for ${serverId}`);
-    const response = await sendMCPRequestWithResponse(serverId, toolCallRequest, serverManager);
+    console.log(
+      `🛠️ Calling tools/call via sendMCPRequestWithResponse for ${serverId}`,
+    );
+    const response = await sendMCPRequestWithResponse(
+      serverId,
+      toolCallRequest,
+      serverManager,
+    );
     const executionTime = Date.now() - startTime;
 
     console.log(`🛠️ Tool execution response:`, response);
@@ -543,7 +620,7 @@ const toolExecutionHandler = async (req: express.Request, res: express.Response)
       serverId,
       parameters,
       result: response.result,
-      executionTime
+      executionTime,
     });
   } catch (error) {
     res.status(500).json({
@@ -551,14 +628,20 @@ const toolExecutionHandler = async (req: express.Request, res: express.Response)
       error: error instanceof Error ? error.message : String(error),
       serverId: req.params.id,
       toolName: req.params.toolName,
-      executionTime: 0
+      executionTime: 0,
     });
   }
 };
 
 // Register both endpoints for compatibility
-app.post("/api/dashboard/servers/:id/tools/:toolName/execute", toolExecutionHandler);
-app.post("/api/dashboard/servers/:id/tools/:toolName/call", toolExecutionHandler);
+app.post(
+  "/api/dashboard/servers/:id/tools/:toolName/execute",
+  toolExecutionHandler,
+);
+app.post(
+  "/api/dashboard/servers/:id/tools/:toolName/call",
+  toolExecutionHandler,
+);
 
 // MCP resource exploration endpoints
 app.get("/api/dashboard/servers/:id/resources", async (req, res) => {
@@ -566,29 +649,44 @@ app.get("/api/dashboard/servers/:id/resources", async (req, res) => {
     const serverId = req.params.id;
     const connection = serverManager.getConnection(serverId);
 
-    console.log(`📚 Resources request for ${serverId}:`, connection ? `status="${connection.status}"` : 'not found');
+    console.log(
+      `📚 Resources request for ${serverId}:`,
+      connection ? `status="${connection.status}"` : "not found",
+    );
 
     if (!connection) {
       return res.status(404).json({ error: "Server not found", serverId });
     }
 
     if (connection.status !== "connected") {
-      console.log(`❌ Connection not ready for resources. Status: "${connection.status}"`);
-      return res.status(400).json({ error: "Not connected", serverId, status: connection.status });
+      console.log(
+        `❌ Connection not ready for resources. Status: "${connection.status}"`,
+      );
+      return res
+        .status(400)
+        .json({ error: "Not connected", serverId, status: connection.status });
     }
 
-    console.log(`✅ Status check passed, proceeding with MCP resources/list call for ${serverId}`);
+    console.log(
+      `✅ Status check passed, proceeding with MCP resources/list call for ${serverId}`,
+    );
 
     // Make real MCP resources/list call
     const resourcesListRequest = {
       jsonrpc: "2.0",
       id: `resources-list-${Date.now()}`,
       method: "resources/list",
-      params: {}
+      params: {},
     };
 
-    console.log(`📚 Calling resources/list via sendMCPRequestWithResponse for ${serverId}`);
-    const response = await sendMCPRequestWithResponse(serverId, resourcesListRequest, serverManager);
+    console.log(
+      `📚 Calling resources/list via sendMCPRequestWithResponse for ${serverId}`,
+    );
+    const response = await sendMCPRequestWithResponse(
+      serverId,
+      resourcesListRequest,
+      serverManager,
+    );
     console.log(`📚 MCP resources response received:`, response);
 
     // sendMCPRequestWithResponse returns the raw JSON-RPC response
@@ -596,14 +694,17 @@ app.get("/api/dashboard/servers/:id/resources", async (req, res) => {
       res.json({
         resources: response.result.resources,
         nextCursor: response.result.nextCursor,
-        serverId
+        serverId,
       });
     } else {
       res.json({ resources: [], nextCursor: null, serverId });
     }
   } catch (error) {
     console.log(`💥 Resources endpoint error for ${req.params.id}:`, error);
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
@@ -612,29 +713,44 @@ app.get("/api/dashboard/servers/:id/resources/templates", async (req, res) => {
     const serverId = req.params.id;
     const connection = serverManager.getConnection(serverId);
 
-    console.log(`📋 Resource templates request for ${serverId}:`, connection ? `status="${connection.status}"` : 'not found');
+    console.log(
+      `📋 Resource templates request for ${serverId}:`,
+      connection ? `status="${connection.status}"` : "not found",
+    );
 
     if (!connection) {
       return res.status(404).json({ error: "Server not found", serverId });
     }
 
     if (connection.status !== "connected") {
-      console.log(`❌ Connection not ready for resource templates. Status: "${connection.status}"`);
-      return res.status(400).json({ error: "Not connected", serverId, status: connection.status });
+      console.log(
+        `❌ Connection not ready for resource templates. Status: "${connection.status}"`,
+      );
+      return res
+        .status(400)
+        .json({ error: "Not connected", serverId, status: connection.status });
     }
 
-    console.log(`✅ Status check passed, proceeding with MCP resources/templates/list call for ${serverId}`);
+    console.log(
+      `✅ Status check passed, proceeding with MCP resources/templates/list call for ${serverId}`,
+    );
 
     // Make real MCP resources/templates/list call
     const resourceTemplatesListRequest = {
       jsonrpc: "2.0",
       id: `resource-templates-list-${Date.now()}`,
       method: "resources/templates/list",
-      params: {}
+      params: {},
     };
 
-    console.log(`📋 Calling resources/templates/list via sendMCPRequestWithResponse for ${serverId}`);
-    const response = await sendMCPRequestWithResponse(serverId, resourceTemplatesListRequest, serverManager);
+    console.log(
+      `📋 Calling resources/templates/list via sendMCPRequestWithResponse for ${serverId}`,
+    );
+    const response = await sendMCPRequestWithResponse(
+      serverId,
+      resourceTemplatesListRequest,
+      serverManager,
+    );
     console.log(`📋 MCP resource templates response received:`, response);
 
     // sendMCPRequestWithResponse returns the raw JSON-RPC response
@@ -642,14 +758,20 @@ app.get("/api/dashboard/servers/:id/resources/templates", async (req, res) => {
       res.json({
         resourceTemplates: response.result.resourceTemplates,
         nextCursor: response.result.nextCursor,
-        serverId
+        serverId,
       });
     } else {
       res.json({ resourceTemplates: [], nextCursor: null, serverId });
     }
   } catch (error) {
-    console.log(`💥 Resource templates endpoint error for ${req.params.id}:`, error);
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error), serverId: req.params.id });
+    console.log(
+      `💥 Resource templates endpoint error for ${req.params.id}:`,
+      error,
+    );
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 
@@ -664,18 +786,27 @@ app.post("/api/dashboard/servers/:id/resources/read", async (req, res) => {
 
     const connection = serverManager.getConnection(serverId);
 
-    console.log(`📖 Resource read request for ${serverId}, URI: ${uri}:`, connection ? `status="${connection.status}"` : 'not found');
+    console.log(
+      `📖 Resource read request for ${serverId}, URI: ${uri}:`,
+      connection ? `status="${connection.status}"` : "not found",
+    );
 
     if (!connection) {
       return res.status(404).json({ error: "Server not found", serverId });
     }
 
     if (connection.status !== "connected") {
-      console.log(`❌ Connection not ready for resource read. Status: "${connection.status}"`);
-      return res.status(400).json({ error: "Not connected", serverId, status: connection.status });
+      console.log(
+        `❌ Connection not ready for resource read. Status: "${connection.status}"`,
+      );
+      return res
+        .status(400)
+        .json({ error: "Not connected", serverId, status: connection.status });
     }
 
-    console.log(`✅ Status check passed, proceeding with MCP resources/read call for ${serverId}`);
+    console.log(
+      `✅ Status check passed, proceeding with MCP resources/read call for ${serverId}`,
+    );
 
     const startTime = Date.now();
 
@@ -684,11 +815,17 @@ app.post("/api/dashboard/servers/:id/resources/read", async (req, res) => {
       jsonrpc: "2.0",
       id: `resource-read-${Date.now()}`,
       method: "resources/read",
-      params: { uri }
+      params: { uri },
     };
 
-    console.log(`📖 Calling resources/read via sendMCPRequestWithResponse for ${serverId}`);
-    const response = await sendMCPRequestWithResponse(serverId, resourceReadRequest, serverManager);
+    console.log(
+      `📖 Calling resources/read via sendMCPRequestWithResponse for ${serverId}`,
+    );
+    const response = await sendMCPRequestWithResponse(
+      serverId,
+      resourceReadRequest,
+      serverManager,
+    );
     console.log(`📖 MCP resource read response received:`, response);
 
     const endTime = Date.now();
@@ -700,14 +837,14 @@ app.post("/api/dashboard/servers/:id/resources/read", async (req, res) => {
         contents: response.result.contents,
         uri,
         serverId,
-        executionTime
+        executionTime,
       });
     } else {
       res.status(404).json({
         error: "Resource not found or empty response",
         uri,
         serverId,
-        executionTime
+        executionTime,
       });
     }
   } catch (error) {
@@ -717,11 +854,10 @@ app.post("/api/dashboard/servers/:id/resources/read", async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
       uri: req.body.uri,
       serverId: req.params.id,
-      executionTime
+      executionTime,
     });
   }
 });
-
 
 // SSE endpoint for dashboard status streaming (with auth check)
 app.use("/sse/dashboard", (req, res) => {
@@ -729,14 +865,18 @@ app.use("/sse/dashboard", (req, res) => {
   if (!authDisabled) {
     const token = req.query.token;
     if (!token || typeof token !== "string") {
-      return res.status(401).json({ error: "Authentication required. Add ?token=YOUR_TOKEN to the URL" });
+      return res.status(401).json({
+        error: "Authentication required. Add ?token=YOUR_TOKEN to the URL",
+      });
     }
 
     const providedToken = Buffer.from(token);
     const expectedToken = Buffer.from(sessionToken);
 
-    if (providedToken.length !== expectedToken.length ||
-        !timingSafeEqual(providedToken, expectedToken)) {
+    if (
+      providedToken.length !== expectedToken.length ||
+      !timingSafeEqual(providedToken, expectedToken)
+    ) {
       return res.status(401).json({ error: "Invalid authentication token" });
     }
   }
@@ -745,7 +885,7 @@ app.use("/sse/dashboard", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Cache-Control",
   });
@@ -754,10 +894,12 @@ app.use("/sse/dashboard", (req, res) => {
   console.log(`📡 SSE client connected: ${clientId}`);
 
   // Send initial connection event
-  res.write(`data: ${JSON.stringify({
-    type: "connection",
-    data: { clientId, timestamp: new Date().toISOString() }
-  })}\n\n`);
+  res.write(
+    `data: ${JSON.stringify({
+      type: "connection",
+      data: { clientId, timestamp: new Date().toISOString() },
+    })}\n\n`,
+  );
 
   // Send initial status
   const sendStatus = () => {
@@ -772,7 +914,7 @@ app.use("/sse/dashboard", (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         timestamp: new Date().toISOString(),
-      }
+      },
     };
 
     res.write(`data: ${JSON.stringify(statusData)}\n\n`);
@@ -788,7 +930,7 @@ app.use("/sse/dashboard", (req, res) => {
       data: {
         ...event,
         timestamp: new Date().toISOString(),
-      }
+      },
     };
     res.write(`data: ${JSON.stringify(eventData)}\n\n`);
 
@@ -803,22 +945,28 @@ app.use("/sse/dashboard", (req, res) => {
         event: eventType,
         ...eventData,
         timestamp: new Date().toISOString(),
-      }
+      },
     };
     res.write(`data: ${JSON.stringify(event)}\n\n`);
   };
 
   // Register event listeners
   serverManager.on("server-event", handleServerEvent);
-  multiProxy.on("session-created", (data) => handleProxyEvent("session-created", data));
-  multiProxy.on("session-removed", (data) => handleProxyEvent("session-removed", data));
+  multiProxy.on("session-created", (data) =>
+    handleProxyEvent("session-created", data),
+  );
+  multiProxy.on("session-removed", (data) =>
+    handleProxyEvent("session-removed", data),
+  );
 
   // Heartbeat to keep connection alive
   const heartbeat = setInterval(() => {
-    res.write(`data: ${JSON.stringify({
-      type: "heartbeat",
-      data: { timestamp: new Date().toISOString() }
-    })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        type: "heartbeat",
+        data: { timestamp: new Date().toISOString() },
+      })}\n\n`,
+    );
   }, 30000); // Every 30 seconds
 
   // Handle client disconnect
@@ -828,8 +976,12 @@ app.use("/sse/dashboard", (req, res) => {
 
     // Remove event listeners
     serverManager.removeListener("server-event", handleServerEvent);
-    multiProxy.removeListener("session-created", (data) => handleProxyEvent("session-created", data));
-    multiProxy.removeListener("session-removed", (data) => handleProxyEvent("session-removed", data));
+    multiProxy.removeListener("session-created", (data) =>
+      handleProxyEvent("session-created", data),
+    );
+    multiProxy.removeListener("session-removed", (data) =>
+      handleProxyEvent("session-removed", data),
+    );
   });
 
   req.on("error", (err) => {
@@ -839,26 +991,32 @@ app.use("/sse/dashboard", (req, res) => {
 });
 
 // StreamableHTTP endpoint for MCP communication (TODO: Complete in Task 5)
-app.use("/streamablehttp/:sessionId", express.raw({ type: "application/octet-stream" }), (req, res) => {
-  const sessionId = req.params.sessionId;
+app.use(
+  "/streamablehttp/:sessionId",
+  express.raw({ type: "application/octet-stream" }),
+  (req, res) => {
+    const sessionId = req.params.sessionId;
 
-  if (!sessionId) {
-    res.status(400).json({ error: "Session ID required" });
-    return;
-  }
+    if (!sessionId) {
+      res.status(400).json({ error: "Session ID required" });
+      return;
+    }
 
-  // TODO: Implement proper StreamableHTTP transport when completing Task 5
-  res.status(501).json({
-    error: "StreamableHTTP endpoint not yet implemented",
-    message: "This endpoint will be completed in Task 5 - Real-time updates system"
-  });
-});
+    // TODO: Implement proper StreamableHTTP transport when completing Task 5
+    res.status(501).json({
+      error: "StreamableHTTP endpoint not yet implemented",
+      message:
+        "This endpoint will be completed in Task 5 - Real-time updates system",
+    });
+  },
+);
 
 // WebSocket endpoint info
 app.get("/ws", (req, res) => {
   res.json({
     info: "WebSocket endpoint available at ws://localhost:6287/ws/tools",
-    message: "Use WebSocket for streaming tool execution with progress feedback"
+    message:
+      "Use WebSocket for streaming tool execution with progress feedback",
   });
 });
 
@@ -875,7 +1033,7 @@ async function loadConfiguration() {
       path.join(process.cwd(), "dashboard-config.json"),
     ];
 
-    configPath = defaultPaths.find(p => existsSync(p)) || "";
+    configPath = defaultPaths.find((p) => existsSync(p)) || "";
   }
 
   if (configPath && existsSync(configPath)) {
@@ -883,14 +1041,25 @@ async function loadConfiguration() {
       console.log(`📋 Loading configuration from: ${configPath}`);
       const configData = JSON.parse(readFileSync(configPath, "utf8"));
       await serverManager.loadFromConfig(configData, configPath);
-      console.log(`✅ Loaded ${serverManager.getAllConnections().size} server configurations`);
+      console.log(
+        `✅ Loaded ${serverManager.getAllConnections().size} server configurations`,
+      );
     } catch (error) {
-      console.error("❌ Error loading configuration:", error instanceof Error ? error.message : String(error));
-      console.log("📝 Continuing with empty configuration. Add servers via API or web interface.");
+      console.error(
+        "❌ Error loading configuration:",
+        error instanceof Error ? error.message : String(error),
+      );
+      console.log(
+        "📝 Continuing with empty configuration. Add servers via API or web interface.",
+      );
     }
   } else {
-    console.log("📝 No configuration file found. Starting with empty configuration.");
-    console.log("💡 You can add servers via the web interface or API endpoints.");
+    console.log(
+      "📝 No configuration file found. Starting with empty configuration.",
+    );
+    console.log(
+      "💡 You can add servers via the web interface or API endpoints.",
+    );
   }
 }
 
@@ -905,7 +1074,9 @@ serverManager.on("server-removed", ({ serverId }) => {
 
 serverManager.on("server-event", (event) => {
   const { serverId, event: eventType, timestamp } = event;
-  console.log(`🔔 [${timestamp.toISOString()}] Server ${serverId}: ${eventType}`);
+  console.log(
+    `🔔 [${timestamp.toISOString()}] Server ${serverId}: ${eventType}`,
+  );
 });
 
 multiProxy.on("session-created", ({ sessionId }) => {
@@ -950,11 +1121,13 @@ async function handleToolExecution(ws: WebSocket, message: WebSocketMessage) {
 
   try {
     // Send initial progress
-    ws.send(JSON.stringify({
-      type: 'tool-progress',
-      executionId,
-      data: { status: 'starting', progress: 0 }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "tool-progress",
+        executionId,
+        data: { status: "starting", progress: 0 },
+      }),
+    );
 
     const startTime = Date.now();
     console.log(`🚀 WebSocket tool execution: ${serverId}.${toolName}`);
@@ -970,8 +1143,8 @@ async function handleToolExecution(ws: WebSocket, message: WebSocketMessage) {
       method: "tools/call",
       params: {
         name: toolName,
-        arguments: parameters
-      }
+        arguments: parameters,
+      },
     };
 
     // Execute with streaming support
@@ -981,47 +1154,52 @@ async function handleToolExecution(ws: WebSocket, message: WebSocketMessage) {
       serverManager,
       (progress) => {
         // Send progress updates
-        ws.send(JSON.stringify({
-          type: 'tool-progress',
-          executionId,
-          data: { status: 'running', progress: progress.value || 50 }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "tool-progress",
+            executionId,
+            data: { status: "running", progress: progress.value || 50 },
+          }),
+        );
       },
-      controller.signal
+      controller.signal,
     );
 
     const executionTime = Date.now() - startTime;
 
     // Send final result
-    ws.send(JSON.stringify({
-      type: 'tool-result',
-      executionId,
-      data: {
-        success: true,
-        result: response.result,
-        executionTime,
-        serverId,
-        toolName,
-        parameters
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "tool-result",
+        executionId,
+        data: {
+          success: true,
+          result: response.result,
+          executionTime,
+          serverId,
+          toolName,
+          parameters,
+        },
+      }),
+    );
 
     // Clean up
     activeExecutions.delete(executionId);
-
   } catch (error) {
     console.error(`🚨 WebSocket tool execution error:`, error);
 
-    ws.send(JSON.stringify({
-      type: 'tool-error',
-      executionId,
-      data: {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        serverId,
-        toolName
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "tool-error",
+        executionId,
+        data: {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+          serverId,
+          toolName,
+        },
+      }),
+    );
 
     // Clean up
     activeExecutions.delete(executionId);
@@ -1035,11 +1213,13 @@ async function handleToolCancellation(executionId: string) {
     execution.controller.abort();
     activeExecutions.delete(executionId);
 
-    execution.ws.send(JSON.stringify({
-      type: 'tool-error',
-      executionId,
-      data: { error: 'Execution cancelled by user' }
-    }));
+    execution.ws.send(
+      JSON.stringify({
+        type: "tool-error",
+        executionId,
+        data: { error: "Execution cancelled by user" },
+      }),
+    );
   }
 }
 
@@ -1055,43 +1235,47 @@ async function startServer() {
   // Set up WebSocket server for streaming tool execution
   const wss = new WebSocketServer({
     server: httpServer,
-    path: '/ws/tools'
+    path: "/ws/tools",
   });
 
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('🔌 WebSocket client connected for tool streaming');
+  wss.on("connection", (ws: WebSocket) => {
+    console.log("🔌 WebSocket client connected for tool streaming");
 
-    ws.on('message', async (data: Buffer) => {
+    ws.on("message", async (data: Buffer) => {
       try {
         const message: WebSocketMessage = JSON.parse(data.toString());
         console.log(`📨 WebSocket message received:`, message);
 
         switch (message.type) {
-          case 'tool-execute':
+          case "tool-execute":
             await handleToolExecution(ws, message);
             break;
-          case 'tool-cancel':
+          case "tool-cancel":
             await handleToolCancellation(message.executionId);
             break;
           default:
-            ws.send(JSON.stringify({
-              type: 'tool-error',
-              executionId: message.executionId,
-              data: { error: `Unknown message type: ${message.type}` }
-            }));
+            ws.send(
+              JSON.stringify({
+                type: "tool-error",
+                executionId: message.executionId,
+                data: { error: `Unknown message type: ${message.type}` },
+              }),
+            );
         }
       } catch (error) {
-        console.error('🚨 WebSocket message error:', error);
-        ws.send(JSON.stringify({
-          type: 'tool-error',
-          executionId: 'unknown',
-          data: { error: 'Invalid message format' }
-        }));
+        console.error("🚨 WebSocket message error:", error);
+        ws.send(
+          JSON.stringify({
+            type: "tool-error",
+            executionId: "unknown",
+            data: { error: "Invalid message format" },
+          }),
+        );
       }
     });
 
-    ws.on('close', () => {
-      console.log('🔌 WebSocket client disconnected');
+    ws.on("close", () => {
+      console.log("🔌 WebSocket client disconnected");
       // Clean up any active executions for this client
       for (const [executionId, execution] of activeExecutions) {
         if (execution.ws === ws) {
@@ -1101,16 +1285,20 @@ async function startServer() {
       }
     });
 
-    ws.on('error', (error) => {
-      console.error('🚨 WebSocket error:', error);
+    ws.on("error", (error) => {
+      console.error("🚨 WebSocket error:", error);
     });
   });
 
   const server = httpServer.listen(port, () => {
     console.log(`🚀 MCP Dashboard server running on port ${port}`);
-    console.log(`📊 Dashboard API available at: http://localhost:${port}/api/dashboard/status`);
+    console.log(
+      `📊 Dashboard API available at: http://localhost:${port}/api/dashboard/status`,
+    );
     console.log(`🔌 MCP SSE endpoint: http://localhost:${port}/sse/:sessionId`);
-    console.log(`🔌 MCP StreamableHTTP endpoint: http://localhost:${port}/streamablehttp/:sessionId`);
+    console.log(
+      `🔌 MCP StreamableHTTP endpoint: http://localhost:${port}/streamablehttp/:sessionId`,
+    );
     console.log(`🎯 WebSocket endpoint: ws://localhost:${port}/ws/tools`);
 
     if (!authDisabled) {

@@ -462,7 +462,9 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     const toolObj = tool as any;
 
     if (toolObj.inputSchema?.properties) {
-      for (const [key, schema] of Object.entries(toolObj.inputSchema.properties)) {
+      for (const [key, schema] of Object.entries(
+        toolObj.inputSchema.properties,
+      )) {
         // Use fuzz test input for first parameter
         if (Object.keys(input).length === 0) {
           input[key] = testCase.input;
@@ -624,7 +626,12 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     const findings: string[] = [];
 
     // Use type guard to safely access sandboxEscape properties
-    if (sandboxEscape && typeof sandboxEscape === "object" && "successful" in sandboxEscape && sandboxEscape.successful) {
+    if (
+      sandboxEscape &&
+      typeof sandboxEscape === "object" &&
+      "successful" in sandboxEscape &&
+      sandboxEscape.successful
+    ) {
       findings.push("CRITICAL: Successful sandbox escape detected");
     }
 
@@ -635,7 +642,12 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     }
 
     // Use type guard to safely access memoryLeaks properties
-    if (memoryLeaks && typeof memoryLeaks === "object" && "severity" in memoryLeaks && memoryLeaks.severity === "high") {
+    if (
+      memoryLeaks &&
+      typeof memoryLeaks === "object" &&
+      "severity" in memoryLeaks &&
+      memoryLeaks.severity === "high"
+    ) {
       findings.push("Severe memory leaks detected");
     }
 
@@ -658,8 +670,16 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     const recommendations: string[] = [];
 
     // Use type guard to safely access sandboxEscape properties
-    const hasAttemptedEscape = sandboxEscape && typeof sandboxEscape === "object" && "attempted" in sandboxEscape && sandboxEscape.attempted;
-    const hasSuccessfulEscape = sandboxEscape && typeof sandboxEscape === "object" && "successful" in sandboxEscape && sandboxEscape.successful;
+    const hasAttemptedEscape =
+      sandboxEscape &&
+      typeof sandboxEscape === "object" &&
+      "attempted" in sandboxEscape &&
+      sandboxEscape.attempted;
+    const hasSuccessfulEscape =
+      sandboxEscape &&
+      typeof sandboxEscape === "object" &&
+      "successful" in sandboxEscape &&
+      sandboxEscape.successful;
 
     if (hasAttemptedEscape || hasSuccessfulEscape) {
       recommendations.push(
@@ -678,7 +698,12 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     }
 
     // Use type guard to safely access memoryLeaks properties
-    if (memoryLeaks && typeof memoryLeaks === "object" && "detected" in memoryLeaks && memoryLeaks.detected) {
+    if (
+      memoryLeaks &&
+      typeof memoryLeaks === "object" &&
+      "detected" in memoryLeaks &&
+      memoryLeaks.detected
+    ) {
       recommendations.push(
         "Implement proper resource cleanup and garbage collection",
       );
@@ -723,8 +748,16 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     }
 
     // Use type guard to safely access sandboxEscape properties
-    const hasAttemptedEscape = sandboxEscape && typeof sandboxEscape === "object" && "attempted" in sandboxEscape && sandboxEscape.attempted;
-    const hasSuccessfulEscape = sandboxEscape && typeof sandboxEscape === "object" && "successful" in sandboxEscape && sandboxEscape.successful;
+    const hasAttemptedEscape =
+      sandboxEscape &&
+      typeof sandboxEscape === "object" &&
+      "attempted" in sandboxEscape &&
+      sandboxEscape.attempted;
+    const hasSuccessfulEscape =
+      sandboxEscape &&
+      typeof sandboxEscape === "object" &&
+      "successful" in sandboxEscape &&
+      sandboxEscape.successful;
 
     if (hasAttemptedEscape) {
       parts.push(
@@ -733,12 +766,19 @@ export class DynamicSecurityAssessor extends BaseAssessor {
     }
 
     // Use type guard to safely access memoryLeaks properties
-    const hasMemoryDetection = memoryLeaks && typeof memoryLeaks === "object" && "detected" in memoryLeaks && memoryLeaks.detected;
+    const hasMemoryDetection =
+      memoryLeaks &&
+      typeof memoryLeaks === "object" &&
+      "detected" in memoryLeaks &&
+      memoryLeaks.detected;
     if (hasMemoryDetection) {
-      const severity = memoryLeaks && typeof memoryLeaks === "object" && "severity" in memoryLeaks ? memoryLeaks.severity : "unknown";
-      parts.push(
-        `Memory leaks detected with ${severity} severity.`,
-      );
+      const severity =
+        memoryLeaks &&
+        typeof memoryLeaks === "object" &&
+        "severity" in memoryLeaks
+          ? memoryLeaks.severity
+          : "unknown";
+      parts.push(`Memory leaks detected with ${severity} severity.`);
     }
 
     return parts.join(" ");

@@ -354,7 +354,9 @@ export class MCPAssessmentService {
     };
 
     // Add enhanced results as a property (not in type yet, but available for reporting)
-    (result as FunctionalityAssessment & { enhancedResults: unknown }).enhancedResults = enhancedResults;
+    (
+      result as FunctionalityAssessment & { enhancedResults: unknown }
+    ).enhancedResults = enhancedResults;
 
     return result;
   }
@@ -1434,7 +1436,9 @@ export class MCPAssessmentService {
     }
 
     // Check if any tools have outputSchema
-    const toolsWithOutputSchema = tools.filter((t: unknown) => (t as any).outputSchema);
+    const toolsWithOutputSchema = tools.filter(
+      (t: unknown) => (t as any).outputSchema,
+    );
     if (toolsWithOutputSchema.length === 0) {
       // No tools with outputSchema, so documentation not needed
       return true;
@@ -1733,14 +1737,20 @@ export class MCPAssessmentService {
 
         if (errorTest.testType === "method_not_found") {
           // Call non-existent tool - this SHOULD return -32601
-          response = await callTool(errorTest.testMethod, errorTest.params as Record<string, unknown>);
+          response = await callTool(
+            errorTest.testMethod,
+            errorTest.params as Record<string, unknown>,
+          );
         } else if (errorTest.testType === "invalid_params") {
           // Use the first available tool with invalid params
           const toolName =
             errorTest.testMethod === "__use_first_tool__"
               ? tools[0]?.name || "test"
               : errorTest.testMethod;
-          response = await callTool(toolName, errorTest.params as Record<string, unknown>);
+          response = await callTool(
+            toolName,
+            errorTest.params as Record<string, unknown>,
+          );
         } else {
           // Skip any other test types that we can't properly test at tool level
           continue;
@@ -2547,7 +2557,9 @@ export class MCPAssessmentService {
     ...statuses: AssessmentStatus[]
   ): AssessmentStatus {
     // Filter out NOT_APPLICABLE statuses - they shouldn't count toward overall assessment
-    const applicableStatuses = statuses.filter(status => status !== "NOT_APPLICABLE");
+    const applicableStatuses = statuses.filter(
+      (status) => status !== "NOT_APPLICABLE",
+    );
 
     if (applicableStatuses.includes("FAIL")) return "FAIL";
     if (applicableStatuses.filter((s) => s === "NEED_MORE_INFO").length >= 2)
@@ -2575,7 +2587,9 @@ export class MCPAssessmentService {
       `Security: ${security.status} - ${security.overallRiskLevel} risk level, ${security.vulnerabilities.length} vulnerabilities found`,
     );
     if (documentation.status === "NOT_APPLICABLE") {
-      parts.push(`Documentation: ${documentation.status} - No documentation provided`);
+      parts.push(
+        `Documentation: ${documentation.status} - No documentation provided`,
+      );
     } else {
       parts.push(
         `Documentation: ${documentation.status} - ${documentation.metrics.exampleCount}/${documentation.metrics.requiredExamples} examples provided`,

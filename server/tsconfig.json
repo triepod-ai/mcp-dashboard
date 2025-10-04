@@ -12,5 +12,10 @@
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "packages", "**/*.spec.ts", "src/index-original.ts"]
+  "exclude": [
+    "node_modules",
+    "packages",
+    "**/*.spec.ts",
+    "src/index-original.ts"
+  ]
 }

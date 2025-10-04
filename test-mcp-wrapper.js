@@ -3,7 +3,9 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
 async function testMCPWrapper(wrapperScript, serverName) {
-  console.log(`🔍 Testing MCP connection to ${serverName} via ${wrapperScript}...`);
+  console.log(
+    `🔍 Testing MCP connection to ${serverName} via ${wrapperScript}...`,
+  );
 
   try {
     // Create transport using wrapper script - exactly as our server does
@@ -13,19 +15,22 @@ async function testMCPWrapper(wrapperScript, serverName) {
       env: {
         ...process.env,
         PYTHONUNBUFFERED: "1",
-        TQDM_DISABLE: "1"
+        TQDM_DISABLE: "1",
       },
     });
 
     console.log("✅ Transport created");
 
     // Create client
-    const client = new Client({
-      name: "mcp-dashboard",
-      version: "1.0.0"
-    }, {
-      capabilities: {}
-    });
+    const client = new Client(
+      {
+        name: "mcp-dashboard",
+        version: "1.0.0",
+      },
+      {
+        capabilities: {},
+      },
+    );
 
     console.log("✅ Client created");
 
@@ -40,13 +45,19 @@ async function testMCPWrapper(wrapperScript, serverName) {
     const tools = await client.listTools();
     const duration = Date.now() - startTime;
 
-    console.log(`✅ Tools received in ${duration}ms:`, tools.tools.length, "tools");
-    console.log("Tool names:", tools.tools.map(t => t.name));
+    console.log(
+      `✅ Tools received in ${duration}ms:`,
+      tools.tools.length,
+      "tools",
+    );
+    console.log(
+      "Tool names:",
+      tools.tools.map((t) => t.name),
+    );
 
     // Clean up
     await transport.close();
     console.log("✅ Connection closed");
-
   } catch (error) {
     console.error(`💥 Error with ${serverName}:`, error.message);
     if (error.code) {

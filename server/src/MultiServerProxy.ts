@@ -1,6 +1,15 @@
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { isJSONRPCRequest, isJSONRPCResponse, JSONRPCMessage, JSONRPCRequest, JSONRPCResponse } from "@modelcontextprotocol/sdk/types.js";
-import { ServerConnectionManager, ServerEvent } from "./ServerConnectionManager.js";
+import {
+  isJSONRPCRequest,
+  isJSONRPCResponse,
+  JSONRPCMessage,
+  JSONRPCRequest,
+  JSONRPCResponse,
+} from "@modelcontextprotocol/sdk/types.js";
+import {
+  ServerConnectionManager,
+  ServerEvent,
+} from "./ServerConnectionManager.js";
 import { EventEmitter } from "events";
 
 // Extended message interface for our dashboard routing
@@ -16,11 +25,11 @@ interface ExtendedJSONRPCRequest {
 
 // Type guard helpers
 function hasServerId(message: any): message is { serverId: string } {
-  return message && typeof message.serverId === 'string';
+  return message && typeof message.serverId === "string";
 }
 
 function hasMethod(message: any): message is { method: string } {
-  return message && typeof message.method === 'string';
+  return message && typeof message.method === "string";
 }
 
 function hasParams(message: any): message is { params: any } {
@@ -28,7 +37,10 @@ function hasParams(message: any): message is { params: any } {
 }
 
 function hasId(message: any): message is { id: string | number } {
-  return message && (typeof message.id === 'string' || typeof message.id === 'number');
+  return (
+    message &&
+    (typeof message.id === "string" || typeof message.id === "number")
+  );
 }
 
 function getValidId(message: any): string | number {
@@ -97,7 +109,10 @@ export class MultiServerProxy extends EventEmitter {
       try {
         session.clientTransport.close();
       } catch (error) {
-        console.warn(`Error closing client transport for session ${sessionId}:`, error);
+        console.warn(
+          `Error closing client transport for session ${sessionId}:`,
+          error,
+        );
       }
       this.sessions.delete(sessionId);
       this.emit("session-removed", { sessionId });
@@ -107,7 +122,11 @@ export class MultiServerProxy extends EventEmitter {
   /**
    * Send a message from client to specific server
    */
-  async sendToServer(sessionId: string, serverId: string, message: any): Promise<void> {
+  async sendToServer(
+    sessionId: string,
+    serverId: string,
+    message: any,
+  ): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -141,7 +160,10 @@ export class MultiServerProxy extends EventEmitter {
           error: {
             code: -32001,
             message: `Server ${serverId}: ${error instanceof Error ? error.message : String(error)}`,
-            data: { serverId, error: error instanceof Error ? error.message : String(error) },
+            data: {
+              serverId,
+              error: error instanceof Error ? error.message : String(error),
+            },
           },
         };
         await session.clientTransport.send(errorResponse);
@@ -161,7 +183,9 @@ export class MultiServerProxy extends EventEmitter {
 
     session.lastActivity = new Date();
 
-    const connectedServers = Array.from(this.serverManager.getAllConnections().entries())
+    const connectedServers = Array.from(
+      this.serverManager.getAllConnections().entries(),
+    )
       .filter(([_, conn]) => conn.status === "connected")
       .map(([id, _]) => id);
 
@@ -182,7 +206,9 @@ export class MultiServerProxy extends EventEmitter {
     }
 
     const results = await Promise.allSettled(
-      connectedServers.map(serverId => this.sendToServer(sessionId, serverId, message))
+      connectedServers.map((serverId) =>
+        this.sendToServer(sessionId, serverId, message),
+      ),
     );
 
     // Handle failures
@@ -200,8 +226,11 @@ export class MultiServerProxy extends EventEmitter {
           data: {
             failures: failures.map(({ serverId, result }) => ({
               serverId,
-              error: result.status === "rejected" ? result.reason.message : "Unknown error"
-            }))
+              error:
+                result.status === "rejected"
+                  ? result.reason.message
+                  : "Unknown error",
+            })),
           },
         },
       };
@@ -231,7 +260,7 @@ export class MultiServerProxy extends EventEmitter {
   getStats() {
     const now = new Date();
     const activeSessions = Array.from(this.sessions.values()).filter(
-      session => now.getTime() - session.lastActivity.getTime() < 300000 // Active in last 5 minutes
+      (session) => now.getTime() - session.lastActivity.getTime() < 300000, // Active in last 5 minutes
     );
 
     return {
@@ -240,7 +269,8 @@ export class MultiServerProxy extends EventEmitter {
       connectedServers: this.serverManager.getStatusSummary().connected,
       totalServers: this.serverManager.getStatusSummary().total,
       messageQueue: Array.from(this.sessions.values()).reduce(
-        (total, session) => total + session.messageQueue.length, 0
+        (total, session) => total + session.messageQueue.length,
+        0,
       ),
     };
   }
@@ -248,10 +278,12 @@ export class MultiServerProxy extends EventEmitter {
   /**
    * Clean up inactive sessions
    */
-  cleanupInactiveSessions(maxInactiveTime = 600000): void { // 10 minutes default
+  cleanupInactiveSessions(maxInactiveTime = 600000): void {
+    // 10 minutes default
     const now = new Date();
     const inactiveSessions = Array.from(this.sessions.entries()).filter(
-      ([_, session]) => now.getTime() - session.lastActivity.getTime() > maxInactiveTime
+      ([_, session]) =>
+        now.getTime() - session.lastActivity.getTime() > maxInactiveTime,
     );
 
     inactiveSessions.forEach(([sessionId, _]) => {
@@ -261,7 +293,7 @@ export class MultiServerProxy extends EventEmitter {
     if (inactiveSessions.length > 0) {
       this.emit("sessions-cleaned", {
         cleaned: inactiveSessions.length,
-        remaining: this.sessions.size
+        remaining: this.sessions.size,
       });
     }
   }
@@ -282,7 +314,10 @@ export class MultiServerProxy extends EventEmitter {
             };
             await session.clientTransport.send(messageWithServer);
           } catch (error) {
-            console.warn(`Error forwarding message to session ${session.id}:`, error);
+            console.warn(
+              `Error forwarding message to session ${session.id}:`,
+              error,
+            );
           }
         }
       });
@@ -303,7 +338,10 @@ export class MultiServerProxy extends EventEmitter {
         };
         await session.clientTransport.send(statusMessage);
       } catch (error) {
-        console.warn(`Error forwarding status to session ${session.id}:`, error);
+        console.warn(
+          `Error forwarding status to session ${session.id}:`,
+          error,
+        );
       }
     });
   }
@@ -320,7 +358,10 @@ export class MultiServerProxy extends EventEmitter {
         if (hasServerId(message)) {
           // Route to specific server
           await this.sendToServer(session.id, message.serverId, message);
-        } else if (hasMethod(message) && message.method === "dashboard/servers/list") {
+        } else if (
+          hasMethod(message) &&
+          message.method === "dashboard/servers/list"
+        ) {
           // Handle dashboard-specific methods
           const response = {
             jsonrpc: "2.0" as const,
@@ -328,7 +369,10 @@ export class MultiServerProxy extends EventEmitter {
             result: this.serverManager.getStatusSummary(),
           };
           await session.clientTransport.send(response);
-        } else if (hasMethod(message) && message.method === "dashboard/servers/connect") {
+        } else if (
+          hasMethod(message) &&
+          message.method === "dashboard/servers/connect"
+        ) {
           // Connect to a specific server
           const { serverId } = (hasParams(message) ? message.params : {}) || {};
           if (!serverId) {
@@ -341,7 +385,10 @@ export class MultiServerProxy extends EventEmitter {
             result: { success: true, serverId },
           };
           await session.clientTransport.send(response);
-        } else if (hasMethod(message) && message.method === "dashboard/servers/disconnect") {
+        } else if (
+          hasMethod(message) &&
+          message.method === "dashboard/servers/disconnect"
+        ) {
           // Disconnect from a specific server
           const { serverId } = (hasParams(message) ? message.params : {}) || {};
           if (!serverId) {
@@ -359,7 +406,10 @@ export class MultiServerProxy extends EventEmitter {
           await this.broadcastToServers(session.id, message);
         }
       } catch (error) {
-        console.error(`Error handling client message in session ${session.id}:`, error);
+        console.error(
+          `Error handling client message in session ${session.id}:`,
+          error,
+        );
 
         if (isJSONRPCRequest(message)) {
           const errorResponse = {
@@ -391,8 +441,8 @@ export class MultiServerProxy extends EventEmitter {
    * Clean up all sessions and resources
    */
   async cleanup(): Promise<void> {
-    const cleanupPromises = Array.from(this.sessions.keys()).map(
-      sessionId => this.removeSession(sessionId)
+    const cleanupPromises = Array.from(this.sessions.keys()).map((sessionId) =>
+      this.removeSession(sessionId),
     );
 
     await Promise.allSettled(cleanupPromises);

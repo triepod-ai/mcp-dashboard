@@ -63,7 +63,7 @@ export const SIMPLE_SUCCESS_RESPONSES: SampleResponsePattern[] = [
               email: "john@example.com",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -93,7 +93,7 @@ export const SIMPLE_SUCCESS_RESPONSES: SampleResponsePattern[] = [
               lastLogin: "2024-03-20T14:22:00Z",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -148,7 +148,7 @@ export const COMPLEX_SUCCESS_RESPONSES: SampleResponsePattern[] = [
               },
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -201,7 +201,7 @@ export const COMPLEX_SUCCESS_RESPONSES: SampleResponsePattern[] = [
               },
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -244,7 +244,7 @@ export const ERROR_RESPONSES: SampleResponsePattern[] = [
               message: "Parameter 'a' must be a number",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -273,7 +273,7 @@ export const ERROR_RESPONSES: SampleResponsePattern[] = [
               },
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -316,7 +316,7 @@ export const ERROR_RESPONSES: SampleResponsePattern[] = [
               },
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -348,7 +348,7 @@ export const SECURITY_RESPONSES: SampleResponsePattern[] = [
               message: "Path traversal detected and blocked",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -456,7 +456,7 @@ export const ASYNC_RESPONSES: SampleResponsePattern[] = [
               result: "Data processing successful",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -479,7 +479,7 @@ export const ASYNC_RESPONSES: SampleResponsePattern[] = [
               result: "Data processing successful",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -501,7 +501,7 @@ export const ASYNC_RESPONSES: SampleResponsePattern[] = [
               message: "Simulated failure during data processing",
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -529,7 +529,7 @@ export const ALL_SAMPLE_RESPONSES = {
 export function getResponse(
   toolName: string,
   scenario: string = "success",
-  _params?: Record<string, unknown>
+  _params?: Record<string, unknown>,
 ): CompatibilityCallToolResult | undefined {
   // Search all response categories
   const allResponses = [
@@ -542,7 +542,7 @@ export function getResponse(
   ];
 
   const match = allResponses.find(
-    (r) => r.toolName === toolName && r.scenario === scenario
+    (r) => r.toolName === toolName && r.scenario === scenario,
   );
 
   return match?.response;
@@ -551,7 +551,9 @@ export function getResponse(
 /**
  * Get default success response for a tool
  */
-export function getDefaultResponse(toolName: string): CompatibilityCallToolResult | undefined {
+export function getDefaultResponse(
+  toolName: string,
+): CompatibilityCallToolResult | undefined {
   return getResponse(toolName, "success");
 }
 

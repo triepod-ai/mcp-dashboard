@@ -32,25 +32,31 @@ export interface PackageLock {
   version: string;
   lockfileVersion: number;
   requires?: boolean;
-  packages?: Record<string, {
-    version?: string;
-    resolved?: string;
-    integrity?: string;
-    dev?: boolean;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    peerDependencies?: Record<string, string>;
-    [key: string]: unknown;
-  }>;
-  dependencies?: Record<string, {
-    version: string;
-    resolved?: string;
-    integrity?: string;
-    dev?: boolean;
-    requires?: Record<string, string>;
-    dependencies?: Record<string, unknown>;
-    [key: string]: unknown;
-  }>;
+  packages?: Record<
+    string,
+    {
+      version?: string;
+      resolved?: string;
+      integrity?: string;
+      dev?: boolean;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+      [key: string]: unknown;
+    }
+  >;
+  dependencies?: Record<
+    string,
+    {
+      version: string;
+      resolved?: string;
+      integrity?: string;
+      dev?: boolean;
+      requires?: Record<string, string>;
+      dependencies?: Record<string, unknown>;
+      [key: string]: unknown;
+    }
+  >;
   [key: string]: unknown;
 }
 
@@ -212,7 +218,7 @@ export interface AssessmentMetrics {
 // Vulnerability and security types
 export interface SecurityVulnerability {
   id: string;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   type: string;
   description: string;
   affected: string[];
@@ -238,7 +244,7 @@ export interface SecurityScanResult {
 export interface SBOMComponent {
   name: string;
   version: string;
-  type: 'library' | 'framework' | 'application' | 'container' | 'file';
+  type: "library" | "framework" | "application" | "container" | "file";
   supplier?: string;
   downloadLocation?: string;
   filesAnalyzed?: boolean;
@@ -281,7 +287,13 @@ export interface SSEConnection {
 }
 
 // Generic utility types for common patterns
-export type JSONValue = string | number | boolean | null | JSONObject | JSONArray;
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONObject
+  | JSONArray;
 export interface JSONObject {
   [key: string]: JSONValue;
 }

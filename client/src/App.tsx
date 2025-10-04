@@ -263,14 +263,23 @@ const App = () => {
     oauthScope,
     config,
     connectionType,
-    serverId: transportType === "stdio" ? command.split(" ")[0] || "stdio" : new URL(sseUrl).hostname,
+    serverId:
+      transportType === "stdio"
+        ? command.split(" ")[0] || "stdio"
+        : new URL(sseUrl).hostname,
     onNotification: (notification) => {
-      setNotifications((prev) => [...prev, {
-        method: notification.method,
-        params: notification.params,
-        server: transportType === "stdio" ? command.split(" ")[0] || "stdio" : new URL(sseUrl).hostname,
-        timestamp: Date.now(),
-      }]);
+      setNotifications((prev) => [
+        ...prev,
+        {
+          method: notification.method,
+          params: notification.params,
+          server:
+            transportType === "stdio"
+              ? command.split(" ")[0] || "stdio"
+              : new URL(sseUrl).hostname,
+          timestamp: Date.now(),
+        },
+      ]);
     },
     onPendingRequest: (request, resolve, reject) => {
       setPendingSampleRequests((prev) => [
@@ -924,7 +933,7 @@ const App = () => {
         <div
           className="overflow-auto"
           style={{
-            height: `calc(100% - ${historyPaneHeight}px)`
+            height: `calc(100% - ${historyPaneHeight}px)`,
           }}
         >
           {mcpClient ? (
@@ -1180,8 +1189,8 @@ const App = () => {
           className="relative border-t border-border"
           style={{
             height: `${Math.max(historyPaneHeight, 250)}px`, // Ensure minimum height
-            minHeight: '250px',
-            backgroundColor: 'blue', // Debug: make the container visible
+            minHeight: "250px",
+            backgroundColor: "blue", // Debug: make the container visible
           }}
         >
           <div

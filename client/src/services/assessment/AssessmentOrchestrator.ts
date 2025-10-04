@@ -134,57 +134,57 @@ export class AssessmentOrchestrator {
       // Core assessments - only add enabled ones
       if (this.config.assessmentCategories?.functionality !== false) {
         assessmentTasks.push({
-          key: 'functionality',
-          name: 'Functionality Assessment',
-          executor: () => this.functionalityAssessor.assess(context)
+          key: "functionality",
+          name: "Functionality Assessment",
+          executor: () => this.functionalityAssessor.assess(context),
         });
       }
 
       if (this.config.assessmentCategories?.security !== false) {
         assessmentTasks.push({
-          key: 'security',
-          name: 'Security Assessment',
-          executor: () => this.securityAssessor.assess(context)
+          key: "security",
+          name: "Security Assessment",
+          executor: () => this.securityAssessor.assess(context),
         });
       }
 
       if (this.config.assessmentCategories?.documentation !== false) {
         assessmentTasks.push({
-          key: 'documentation',
-          name: 'Documentation Assessment',
-          executor: () => this.documentationAssessor.assess(context)
+          key: "documentation",
+          name: "Documentation Assessment",
+          executor: () => this.documentationAssessor.assess(context),
         });
       }
 
       if (this.config.assessmentCategories?.errorHandling !== false) {
         assessmentTasks.push({
-          key: 'errorHandling',
-          name: 'Error Handling Assessment',
-          executor: () => this.errorHandlingAssessor.assess(context)
+          key: "errorHandling",
+          name: "Error Handling Assessment",
+          executor: () => this.errorHandlingAssessor.assess(context),
         });
       }
 
       if (this.config.assessmentCategories?.usability !== false) {
         assessmentTasks.push({
-          key: 'usability',
-          name: 'Usability Assessment',
-          executor: () => this.usabilityAssessor.assess(context)
+          key: "usability",
+          name: "Usability Assessment",
+          executor: () => this.usabilityAssessor.assess(context),
         });
       }
 
       // Extended assessments
       if (this.mcpSpecAssessor) {
         assessmentTasks.push({
-          key: 'mcpSpecCompliance',
-          name: 'MCP Spec Compliance Assessment',
-          executor: () => this.mcpSpecAssessor!.assess(context)
+          key: "mcpSpecCompliance",
+          name: "MCP Spec Compliance Assessment",
+          executor: () => this.mcpSpecAssessor!.assess(context),
         });
       }
       if (this.dynamicSecurityAssessor) {
         assessmentTasks.push({
-          key: 'dynamicSecurity',
-          name: 'Dynamic Security Assessment',
-          executor: () => this.dynamicSecurityAssessor!.assess(context)
+          key: "dynamicSecurity",
+          name: "Dynamic Security Assessment",
+          executor: () => this.dynamicSecurityAssessor!.assess(context),
         });
       }
 
@@ -198,7 +198,8 @@ export class AssessmentOrchestrator {
       }
 
       if (this.config.assessmentCategories?.security !== false) {
-        assessmentResults.security = await this.securityAssessor.assess(context);
+        assessmentResults.security =
+          await this.securityAssessor.assess(context);
       }
 
       if (this.config.assessmentCategories?.documentation !== false) {
@@ -252,8 +253,10 @@ export class AssessmentOrchestrator {
       usability: assessmentResults.usability as UsabilityAssessment,
 
       // Optional extended assessments
-      mcpSpecCompliance: assessmentResults.mcpSpecCompliance as MCPSpecComplianceAssessment,
-      dynamicSecurity: assessmentResults.dynamicSecurity as DynamicSecurityAssessment,
+      mcpSpecCompliance:
+        assessmentResults.mcpSpecCompliance as MCPSpecComplianceAssessment,
+      dynamicSecurity:
+        assessmentResults.dynamicSecurity as DynamicSecurityAssessment,
 
       // Overall assessment
       overallStatus,
@@ -311,42 +314,70 @@ export class AssessmentOrchestrator {
     let total = 0;
 
     // Core assessments - use type guards for safe property access
-    const functionalityResults = safeGetProperty(results, "functionality", (v): v is FunctionalityAssessment =>
-      v !== null && typeof v === "object" && "toolResults" in v
+    const functionalityResults = safeGetProperty(
+      results,
+      "functionality",
+      (v): v is FunctionalityAssessment =>
+        v !== null && typeof v === "object" && "toolResults" in v,
     );
-    if (functionalityResults?.toolResults && isArray(functionalityResults.toolResults)) {
+    if (
+      functionalityResults?.toolResults &&
+      isArray(functionalityResults.toolResults)
+    ) {
       total += functionalityResults.toolResults.length;
     }
 
-    const securityResults = safeGetProperty(results, "security", (v): v is SecurityAssessment =>
-      v !== null && typeof v === "object" && "promptInjectionTests" in v
+    const securityResults = safeGetProperty(
+      results,
+      "security",
+      (v): v is SecurityAssessment =>
+        v !== null && typeof v === "object" && "promptInjectionTests" in v,
     );
-    if (securityResults?.promptInjectionTests && isArray(securityResults.promptInjectionTests)) {
+    if (
+      securityResults?.promptInjectionTests &&
+      isArray(securityResults.promptInjectionTests)
+    ) {
       total += securityResults.promptInjectionTests.length;
     }
 
-    const errorHandlingResults = safeGetProperty(results, "errorHandling", (v): v is any =>
-      v !== null && typeof v === "object" && "metrics" in v
+    const errorHandlingResults = safeGetProperty(
+      results,
+      "errorHandling",
+      (v): v is any => v !== null && typeof v === "object" && "metrics" in v,
     );
-    if (errorHandlingResults?.metrics?.testDetails && isArray(errorHandlingResults.metrics.testDetails)) {
+    if (
+      errorHandlingResults?.metrics?.testDetails &&
+      isArray(errorHandlingResults.metrics.testDetails)
+    ) {
       total += errorHandlingResults.metrics.testDetails.length;
     }
 
     // Extended assessments
-    const dynamicSecurityResults = safeGetProperty(results, "dynamicSecurity", (v): v is DynamicSecurityAssessment =>
-      v !== null && typeof v === "object"
+    const dynamicSecurityResults = safeGetProperty(
+      results,
+      "dynamicSecurity",
+      (v): v is DynamicSecurityAssessment =>
+        v !== null && typeof v === "object",
     );
-    if (dynamicSecurityResults?.runtimeTests && isArray(dynamicSecurityResults.runtimeTests)) {
+    if (
+      dynamicSecurityResults?.runtimeTests &&
+      isArray(dynamicSecurityResults.runtimeTests)
+    ) {
       total += dynamicSecurityResults.runtimeTests.length;
     }
-    if (dynamicSecurityResults?.sandboxTests && isArray(dynamicSecurityResults.sandboxTests)) {
+    if (
+      dynamicSecurityResults?.sandboxTests &&
+      isArray(dynamicSecurityResults.sandboxTests)
+    ) {
       total += dynamicSecurityResults.sandboxTests.length;
     }
 
     return total;
   }
 
-  private determineOverallStatus(results: Record<string, unknown>): AssessmentStatus {
+  private determineOverallStatus(
+    results: Record<string, unknown>,
+  ): AssessmentStatus {
     const statuses: AssessmentStatus[] = [];
 
     // Collect all statuses
@@ -370,38 +401,52 @@ export class AssessmentOrchestrator {
   private generateSummary(results: Record<string, unknown>): string {
     const parts: string[] = [];
     const totalCategories = Object.keys(results).length;
-    const passedCategories = Object.values(results).filter(
-      (r: unknown) => {
-        const assessment = safeGetProperty({ result: r }, "result", (v): v is { status?: string } =>
-          v !== null && typeof v === "object" && "status" in v
-        );
-        return assessment?.status === "PASS";
-      }
-    ).length;
+    const passedCategories = Object.values(results).filter((r: unknown) => {
+      const assessment = safeGetProperty(
+        { result: r },
+        "result",
+        (v): v is { status?: string } =>
+          v !== null && typeof v === "object" && "status" in v,
+      );
+      return assessment?.status === "PASS";
+    }).length;
 
     parts.push(
       `Assessment complete: ${passedCategories}/${totalCategories} categories passed.`,
     );
 
     // Add key findings - use type guards for safe access
-    const securityResults = safeGetProperty(results, "security", (v): v is SecurityAssessment =>
-      v !== null && typeof v === "object" && "vulnerabilities" in v
+    const securityResults = safeGetProperty(
+      results,
+      "security",
+      (v): v is SecurityAssessment =>
+        v !== null && typeof v === "object" && "vulnerabilities" in v,
     );
-    if (securityResults?.vulnerabilities && isArray(securityResults.vulnerabilities) && securityResults.vulnerabilities.length > 0) {
+    if (
+      securityResults?.vulnerabilities &&
+      isArray(securityResults.vulnerabilities) &&
+      securityResults.vulnerabilities.length > 0
+    ) {
       parts.push(
         `Found ${securityResults.vulnerabilities.length} security vulnerabilities.`,
       );
     }
 
-    const functionalityResults = safeGetProperty(results, "functionality", (v): v is FunctionalityAssessment =>
-      v !== null && typeof v === "object" && "brokenTools" in v
+    const functionalityResults = safeGetProperty(
+      results,
+      "functionality",
+      (v): v is FunctionalityAssessment =>
+        v !== null && typeof v === "object" && "brokenTools" in v,
     );
-    if (functionalityResults?.brokenTools && isArray(functionalityResults.brokenTools) && functionalityResults.brokenTools.length > 0) {
+    if (
+      functionalityResults?.brokenTools &&
+      isArray(functionalityResults.brokenTools) &&
+      functionalityResults.brokenTools.length > 0
+    ) {
       parts.push(
         `${functionalityResults.brokenTools.length} tools are not functioning correctly.`,
       );
     }
-
 
     return parts.join(" ");
   }
@@ -415,14 +460,16 @@ export class AssessmentOrchestrator {
       name: string;
       executor: () => Promise<unknown>;
     }>,
-    assessmentResults: Record<string, unknown>
+    assessmentResults: Record<string, unknown>,
   ): Promise<void> {
     // Optimize concurrency for MCP servers - cap at 3 for better reliability
     const maxConcurrency = Math.min(this.config.maxParallelTests || 3, 3);
     const totalTasks = assessmentTasks.length;
 
     if (this.config.verboseLogging) {
-      console.log(`🚀 Starting ${totalTasks} assessments with concurrency: ${maxConcurrency}`);
+      console.log(
+        `🚀 Starting ${totalTasks} assessments with concurrency: ${maxConcurrency}`,
+      );
     }
 
     type TaskResult =
@@ -432,15 +479,21 @@ export class AssessmentOrchestrator {
     // For small numbers of tasks, use simple Promise.all with controlled concurrency
     if (totalTasks <= 3) {
       // Direct parallel execution for small task counts
-      const promises = assessmentTasks.map(task =>
-        task.executor()
-          .then(result => ({ success: true as const, key: task.key, result, name: task.name }))
-          .catch(error => ({
+      const promises = assessmentTasks.map((task) =>
+        task
+          .executor()
+          .then((result) => ({
+            success: true as const,
+            key: task.key,
+            result,
+            name: task.name,
+          }))
+          .catch((error) => ({
             success: false as const,
             key: task.key,
             error: error instanceof Error ? error.message : String(error),
-            name: task.name
-          }))
+            name: task.name,
+          })),
       );
 
       const results = await Promise.allSettled(promises);
@@ -448,7 +501,7 @@ export class AssessmentOrchestrator {
       // Process results
       results.forEach((promiseResult, index) => {
         const task = assessmentTasks[index];
-        if (promiseResult.status === 'fulfilled') {
+        if (promiseResult.status === "fulfilled") {
           const taskResult = promiseResult.value;
           if (taskResult.success) {
             assessmentResults[taskResult.key] = taskResult.result;
@@ -456,7 +509,11 @@ export class AssessmentOrchestrator {
             this.handleFailedAssessment(taskResult, assessmentResults);
           }
         } else {
-          this.handleRejectedPromise(task, promiseResult.reason, assessmentResults);
+          this.handleRejectedPromise(
+            task,
+            promiseResult.reason,
+            assessmentResults,
+          );
         }
       });
 
@@ -469,15 +526,21 @@ export class AssessmentOrchestrator {
       const batch = assessmentTasks.slice(i, i + maxConcurrency);
 
       // Execute batch with simplified promise handling
-      const batchPromises = batch.map(task =>
-        task.executor()
-          .then(result => ({ success: true as const, key: task.key, result, name: task.name }))
-          .catch(error => ({
+      const batchPromises = batch.map((task) =>
+        task
+          .executor()
+          .then((result) => ({
+            success: true as const,
+            key: task.key,
+            result,
+            name: task.name,
+          }))
+          .catch((error) => ({
             success: false as const,
             key: task.key,
             error: error instanceof Error ? error.message : String(error),
-            name: task.name
-          }))
+            name: task.name,
+          })),
       );
 
       const batchResults = await Promise.all(batchPromises);
@@ -488,7 +551,9 @@ export class AssessmentOrchestrator {
         if (taskResult.success) {
           assessmentResults[taskResult.key] = taskResult.result;
           if (this.config.verboseLogging) {
-            console.log(`✅ ${taskResult.name} (${completedTasks}/${totalTasks})`);
+            console.log(
+              `✅ ${taskResult.name} (${completedTasks}/${totalTasks})`,
+            );
           }
         } else {
           this.handleFailedAssessment(taskResult, assessmentResults);
@@ -497,7 +562,7 @@ export class AssessmentOrchestrator {
 
       // Minimal delay between batches to prevent server overload
       if (i + maxConcurrency < assessmentTasks.length) {
-        await new Promise(resolve => setTimeout(resolve, 50)); // Reduced from 100ms
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Reduced from 100ms
       }
     }
 
@@ -508,27 +573,27 @@ export class AssessmentOrchestrator {
 
   private handleFailedAssessment(
     taskResult: { success: false; key: string; error: string; name: string },
-    assessmentResults: Record<string, unknown>
+    assessmentResults: Record<string, unknown>,
   ): void {
     console.error(`❌ ${taskResult.name} failed: ${taskResult.error}`);
     assessmentResults[taskResult.key] = {
       status: "FAIL" as AssessmentStatus,
       error: taskResult.error,
-      summary: `Assessment failed: ${taskResult.error}`
+      summary: `Assessment failed: ${taskResult.error}`,
     };
   }
 
   private handleRejectedPromise(
     task: { key: string; name: string },
     reason: unknown,
-    assessmentResults: Record<string, unknown>
+    assessmentResults: Record<string, unknown>,
   ): void {
     const errorMsg = reason instanceof Error ? reason.message : String(reason);
     console.error(`❌ ${task.name} promise rejected: ${errorMsg}`);
     assessmentResults[task.key] = {
       status: "FAIL" as AssessmentStatus,
       error: errorMsg,
-      summary: `Assessment promise rejected`
+      summary: `Assessment promise rejected`,
     };
   }
 
@@ -537,12 +602,19 @@ export class AssessmentOrchestrator {
 
     // Aggregate recommendations from all assessments - use type guards
     Object.values(results).forEach((assessment: unknown) => {
-      const assessmentObj = safeGetProperty({ assessment }, "assessment", (v): v is { recommendations?: string[] } =>
-        v !== null && typeof v === "object" && "recommendations" in v
+      const assessmentObj = safeGetProperty(
+        { assessment },
+        "assessment",
+        (v): v is { recommendations?: string[] } =>
+          v !== null && typeof v === "object" && "recommendations" in v,
       );
-      if (assessmentObj?.recommendations && isArray(assessmentObj.recommendations)) {
+      if (
+        assessmentObj?.recommendations &&
+        isArray(assessmentObj.recommendations)
+      ) {
         // Ensure all items are strings
-        const stringRecommendations = assessmentObj.recommendations.filter(isString);
+        const stringRecommendations =
+          assessmentObj.recommendations.filter(isString);
         recommendations.push(...stringRecommendations);
       }
     });

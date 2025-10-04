@@ -12,7 +12,14 @@ import {
 import { BaseAssessor } from "./BaseAssessor";
 import { AssessmentContext } from "../AssessmentOrchestrator";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { isTool, isErrorResponse, extractErrorInfo, isJSONSchemaProperty, isJSONSchema, safeGetProperty } from "@/utils/typeGuards";
+import {
+  isTool,
+  isErrorResponse,
+  extractErrorInfo,
+  isJSONSchemaProperty,
+  isJSONSchema,
+  safeGetProperty,
+} from "@/utils/typeGuards";
 
 export class ErrorHandlingAssessor extends BaseAssessor {
   async assess(context: AssessmentContext): Promise<ErrorHandlingAssessment> {
@@ -69,7 +76,10 @@ export class ErrorHandlingAssessor extends BaseAssessor {
 
   private async testToolErrorHandling(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ErrorTestDetail[]> {
     const tests: ErrorTestDetail[] = [];
 
@@ -90,7 +100,10 @@ export class ErrorHandlingAssessor extends BaseAssessor {
 
   private async testMissingParameters(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ErrorTestDetail> {
     const testInput = {}; // Empty params
 
@@ -98,7 +111,11 @@ export class ErrorHandlingAssessor extends BaseAssessor {
     const schema = this.getToolSchema(tool);
     let hasRequiredParams = false;
 
-    if (isJSONSchema(schema) && schema.required && Array.isArray(schema.required)) {
+    if (
+      isJSONSchema(schema) &&
+      schema.required &&
+      Array.isArray(schema.required)
+    ) {
       hasRequiredParams = schema.required.length > 0;
     }
 
@@ -111,7 +128,8 @@ export class ErrorHandlingAssessor extends BaseAssessor {
         expectedError: "Tool has no required parameters",
         actualResponse: {
           isError: false,
-          errorMessage: "Tool correctly accepts empty parameters (no required params)",
+          errorMessage:
+            "Tool correctly accepts empty parameters (no required params)",
           rawResponse: "N/A - no required parameters to test",
         },
         passed: true,
@@ -133,7 +151,9 @@ export class ErrorHandlingAssessor extends BaseAssessor {
       const messageLower = errorMessage.toLowerCase();
 
       // Debug logging to help identify why tests fail
-      this.log(`[DEBUG] Tool: ${tool.name}, Error detected: ${isError}, Message: "${errorMessage}"`);
+      this.log(
+        `[DEBUG] Tool: ${tool.name}, Error detected: ${isError}, Message: "${errorMessage}"`,
+      );
 
       // Comprehensive pattern matching for missing parameter errors
       const missingParameterPatterns = [
@@ -167,30 +187,34 @@ export class ErrorHandlingAssessor extends BaseAssessor {
         /bad.*request/i,
       ];
 
-      const hasValidErrorPattern = missingParameterPatterns.some(pattern =>
-        pattern.test(errorMessage)
+      const hasValidErrorPattern = missingParameterPatterns.some((pattern) =>
+        pattern.test(errorMessage),
       );
 
       // Accept any error response that indicates parameter validation
-      const hasValidError = isError && (
-        hasValidErrorPattern ||
-        messageLower.includes("required") ||
-        messageLower.includes("missing") ||
-        messageLower.includes("must provide") ||
-        messageLower.includes("must be provided") ||
-        messageLower.includes("is required") ||
-        messageLower.includes("cannot be empty") ||
-        messageLower.includes("must specify") ||
-        messageLower.includes("-32602") ||
-        messageLower.includes("invalid param") ||
-        messageLower.includes("parameter") && messageLower.includes("required") ||
-        messageLower.includes("field") && messageLower.includes("required") ||
-        messageLower.includes("validation")
-      );
+      const hasValidError =
+        isError &&
+        (hasValidErrorPattern ||
+          messageLower.includes("required") ||
+          messageLower.includes("missing") ||
+          messageLower.includes("must provide") ||
+          messageLower.includes("must be provided") ||
+          messageLower.includes("is required") ||
+          messageLower.includes("cannot be empty") ||
+          messageLower.includes("must specify") ||
+          messageLower.includes("-32602") ||
+          messageLower.includes("invalid param") ||
+          (messageLower.includes("parameter") &&
+            messageLower.includes("required")) ||
+          (messageLower.includes("field") &&
+            messageLower.includes("required")) ||
+          messageLower.includes("validation"));
 
       // Additional debug logging
       if (isError && !hasValidError) {
-        this.log(`[DEBUG] Error detected but doesn't match patterns: "${errorMessage}"`);
+        this.log(
+          `[DEBUG] Error detected but doesn't match patterns: "${errorMessage}"`,
+        );
       }
 
       return {
@@ -205,7 +229,11 @@ export class ErrorHandlingAssessor extends BaseAssessor {
           rawResponse: response,
         },
         passed: hasValidError,
-        reason: isError ? (hasValidError ? undefined : "Error message doesn't indicate parameter validation") : "Tool did not reject missing parameters",
+        reason: isError
+          ? hasValidError
+            ? undefined
+            : "Error message doesn't indicate parameter validation"
+          : "Tool did not reject missing parameters",
       };
     } catch (error) {
       // Check if the error message is meaningful (not just a generic crash)
@@ -242,7 +270,10 @@ export class ErrorHandlingAssessor extends BaseAssessor {
 
   private async testWrongTypes(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ErrorTestDetail> {
     const schema = this.getToolSchema(tool);
 
@@ -315,7 +346,11 @@ export class ErrorHandlingAssessor extends BaseAssessor {
           rawResponse: response,
         },
         passed: hasValidError,
-        reason: isError ? (hasValidError ? undefined : "Error doesn't indicate type validation") : "Tool accepted wrong parameter types",
+        reason: isError
+          ? hasValidError
+            ? undefined
+            : "Error doesn't indicate type validation"
+          : "Tool accepted wrong parameter types",
       };
     } catch (error) {
       // Check if the error message is meaningful (not just a generic crash)
@@ -350,7 +385,10 @@ export class ErrorHandlingAssessor extends BaseAssessor {
 
   private async testInvalidValues(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ErrorTestDetail> {
     const schema = this.getToolSchema(tool);
 
@@ -436,7 +474,10 @@ export class ErrorHandlingAssessor extends BaseAssessor {
 
   private async testExcessiveInput(
     tool: Tool,
-    callTool: (name: string, params: Record<string, unknown>) => Promise<unknown>,
+    callTool: (
+      name: string,
+      params: Record<string, unknown>,
+    ) => Promise<unknown>,
   ): Promise<ErrorTestDetail> {
     const schema = this.getToolSchema(tool);
 
@@ -457,10 +498,12 @@ export class ErrorHandlingAssessor extends BaseAssessor {
         toolName: tool.name,
         testType: "excessive_input",
         testInput: {},
-        expectedError: "Tool has no string parameters to test input size limits",
+        expectedError:
+          "Tool has no string parameters to test input size limits",
         actualResponse: {
           isError: false,
-          errorMessage: "Tool has no string parameters to test excessive input (N/A)",
+          errorMessage:
+            "Tool has no string parameters to test excessive input (N/A)",
           rawResponse: "N/A - no string parameters to test input size for",
         },
         passed: true,
@@ -582,8 +625,14 @@ export class ErrorHandlingAssessor extends BaseAssessor {
       }
 
       if (prop.type === "string") {
-        const enumValues = safeGetProperty(prop, "enum", (v): v is string[] => Array.isArray(v));
-        const format = safeGetProperty(prop, "format", (v): v is string => typeof v === "string");
+        const enumValues = safeGetProperty(prop, "enum", (v): v is string[] =>
+          Array.isArray(v),
+        );
+        const format = safeGetProperty(
+          prop,
+          "format",
+          (v): v is string => typeof v === "string",
+        );
 
         if (enumValues) {
           params[key] = "not_in_enum"; // Value not in enum
@@ -595,8 +644,16 @@ export class ErrorHandlingAssessor extends BaseAssessor {
           params[key] = ""; // Empty string
         }
       } else if (prop.type === "number" || prop.type === "integer") {
-        const minimum = safeGetProperty(prop, "minimum", (v): v is number => typeof v === "number");
-        const maximum = safeGetProperty(prop, "maximum", (v): v is number => typeof v === "number");
+        const minimum = safeGetProperty(
+          prop,
+          "minimum",
+          (v): v is number => typeof v === "number",
+        );
+        const maximum = safeGetProperty(
+          prop,
+          "maximum",
+          (v): v is number => typeof v === "number",
+        );
 
         if (minimum !== undefined) {
           params[key] = minimum - 1; // Below minimum
@@ -638,11 +695,7 @@ export class ErrorHandlingAssessor extends BaseAssessor {
     return params;
   }
 
-
-  private calculateMetrics(
-    tests: ErrorTestDetail[],
-  ): ErrorHandlingMetrics {
-
+  private calculateMetrics(tests: ErrorTestDetail[]): ErrorHandlingMetrics {
     // Calculate enhanced score with bonus points for quality
     let enhancedScore = 0;
     let maxPossibleScore = 0;

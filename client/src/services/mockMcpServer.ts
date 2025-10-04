@@ -10,10 +10,7 @@ import {
   getToolByName,
   getToolsByCategory,
 } from "../fixtures/sampleTools";
-import {
-  getResponse,
-  getDefaultResponse,
-} from "../fixtures/sampleResponses";
+import { getResponse, getDefaultResponse } from "../fixtures/sampleResponses";
 
 /**
  * Mock server configuration
@@ -52,7 +49,10 @@ export class MockMcpServer {
 
     if (this.config.enableLogging) {
       console.log(`[MockMCP] Initialized mock server: ${this.config.name}`);
-      console.log(`[MockMCP] Available tools:`, this.config.tools.map((t) => t.name));
+      console.log(
+        `[MockMCP] Available tools:`,
+        this.config.tools.map((t) => t.name),
+      );
     }
   }
 
@@ -80,7 +80,7 @@ export class MockMcpServer {
    */
   async callTool(
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ): Promise<CompatibilityCallToolResult> {
     const startTime = Date.now();
 
@@ -115,7 +115,10 @@ export class MockMcpServer {
     }
 
     // Simulate random failures
-    if (this.config.failureRate! > 0 && Math.random() < this.config.failureRate!) {
+    if (
+      this.config.failureRate! > 0 &&
+      Math.random() < this.config.failureRate!
+    ) {
       const response: CompatibilityCallToolResult = {
         content: [
           {
@@ -164,7 +167,7 @@ export class MockMcpServer {
    */
   private detectScenario(
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ): string {
     // Check for error simulation flags
     if (params.shouldFail === true) {
@@ -207,7 +210,9 @@ export class MockMcpServer {
     // Check for missing required parameters
     const tool = getToolByName(toolName);
     if (tool?.inputSchema?.required) {
-      const missing = tool.inputSchema.required.filter((req) => !(req in params));
+      const missing = tool.inputSchema.required.filter(
+        (req) => !(req in params),
+      );
       if (missing.length > 0) {
         return "missing_required";
       }
@@ -227,7 +232,7 @@ export class MockMcpServer {
    */
   private generateGenericResponse(
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ): CompatibilityCallToolResult {
     return {
       content: [
@@ -242,7 +247,7 @@ export class MockMcpServer {
               timestamp: new Date().toISOString(),
             },
             null,
-            2
+            2,
           ),
         },
       ],
@@ -263,7 +268,7 @@ export class MockMcpServer {
     toolName: string,
     params: Record<string, unknown>,
     response: CompatibilityCallToolResult,
-    duration: number
+    duration: number,
   ) {
     this.callLog.push({
       timestamp: new Date(),
@@ -298,11 +303,14 @@ export class MockMcpServer {
    */
   getStats() {
     const totalCalls = this.callLog.length;
-    const errorCalls = this.callLog.filter((call) => call.response.isError).length;
+    const errorCalls = this.callLog.filter(
+      (call) => call.response.isError,
+    ).length;
     const successCalls = totalCalls - errorCalls;
     const avgDuration =
       totalCalls > 0
-        ? this.callLog.reduce((sum, call) => sum + call.duration, 0) / totalCalls
+        ? this.callLog.reduce((sum, call) => sum + call.duration, 0) /
+          totalCalls
         : 0;
 
     return {
@@ -448,7 +456,7 @@ export class MockServerManager {
   async callTool(
     serverId: string,
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ): Promise<CompatibilityCallToolResult> {
     const server = this.getServer(serverId);
     if (!server) {

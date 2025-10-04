@@ -88,11 +88,18 @@ export const ThemeTest: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <div className="text-sm text-muted-foreground mb-2">Memory Usage</div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: "65%" }} />
+              <div className="text-sm text-muted-foreground mb-2">
+                Memory Usage
               </div>
-              <p className="text-xs text-muted-foreground mt-1">65% of 512 MB</p>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: "65%" }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                65% of 512 MB
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -106,13 +113,17 @@ export const ThemeTest: React.FC = () => {
             <div className="p-2 text-sm border-l-2 border-primary/20 bg-accent/30 rounded hover:bg-accent/50 transition-colors">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">Connection</span>
-                <span className="text-muted-foreground">Server connected successfully</span>
+                <span className="text-muted-foreground">
+                  Server connected successfully
+                </span>
               </div>
             </div>
             <div className="p-2 text-sm border-l-2 border-primary/20 bg-accent/30 rounded hover:bg-accent/50 transition-colors">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">Update</span>
-                <span className="text-muted-foreground">Configuration updated</span>
+                <span className="text-muted-foreground">
+                  Configuration updated
+                </span>
               </div>
             </div>
           </CardContent>
@@ -156,7 +167,9 @@ export const ThemeTest: React.FC = () => {
             <div>
               <h4 className="font-medium text-foreground">System Preference</h4>
               <p className="text-muted-foreground">
-                {window.matchMedia("(prefers-color-scheme: dark)").matches ? "Dark" : "Light"}
+                {window.matchMedia("(prefers-color-scheme: dark)").matches
+                  ? "Dark"
+                  : "Light"}
               </p>
             </div>
             <div>

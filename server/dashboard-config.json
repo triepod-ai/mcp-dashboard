@@ -11,16 +11,6 @@
       "transport": "stdio",
       "enabled": true
     },
-    "qdrant": {
-      "name": "qdrant",
-      "command": "/home/bryan/run-qdrant-docker-mcp.sh",
-      "args": [],
-      "env": {
-        "PYTHONUNBUFFERED": "1"
-      },
-      "transport": "stdio",
-      "enabled": true
-    },
     "6505d5d7-3acc-4c55-bef4-b88db604a64c": {
       "name": "ollama",
       "command": "/home/bryan/run-ollama-mcp.sh",
@@ -29,12 +19,21 @@
       "transport": "stdio",
       "enabled": true
     },
-    "3660ef1e-ebf1-4581-9727-8f2f7929fabf": {
-      "name": "filesystem",
-      "command": "/home/bryan/run-filesystem-mcp.sh",
+    "b499abf3-4cbc-4030-8fb6-4515b6a01c4e": {
+      "name": "qdrant",
+      "command": "/home/bryan/run-mcp-qdrant-docker.sh",
       "args": [],
       "env": {},
       "transport": "stdio",
+      "enabled": true
+    },
+    "93d0f91c-e291-4ec8-8866-4c6825919b1d": {
+      "name": "qdrant http",
+      "command": "",
+      "args": [],
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://localhost:10650/mcp",
       "enabled": true
     }
   }

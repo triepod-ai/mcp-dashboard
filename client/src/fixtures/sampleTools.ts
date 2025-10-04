@@ -352,7 +352,9 @@ export const ALL_TOOLS_FLAT: Tool[] = [
 /**
  * Get tools by category
  */
-export function getToolsByCategory(category: keyof typeof ALL_SAMPLE_TOOLS): Tool[] {
+export function getToolsByCategory(
+  category: keyof typeof ALL_SAMPLE_TOOLS,
+): Tool[] {
   return ALL_SAMPLE_TOOLS[category] || [];
 }
 

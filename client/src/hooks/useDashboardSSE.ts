@@ -50,14 +50,17 @@ export function useDashboardSSE({
       eventSourceRef.current.close();
     }
 
-    setConnectionState(prev => ({ ...prev, status: "connecting" }));
+    setConnectionState((prev) => ({ ...prev, status: "connecting" }));
 
     try {
       const sseUrl = authToken
         ? `${url}/sse/dashboard?token=${encodeURIComponent(authToken)}`
         : `${url}/sse/dashboard`;
       console.log("🐛 [useDashboardSSE] Connecting to:", sseUrl);
-      console.log("🐛 [useDashboardSSE] Auth token:", authToken?.slice(0, 8) + "...");
+      console.log(
+        "🐛 [useDashboardSSE] Auth token:",
+        authToken?.slice(0, 8) + "...",
+      );
       const eventSource = new EventSource(sseUrl);
       eventSourceRef.current = eventSource;
 
@@ -82,32 +85,50 @@ export function useDashboardSSE({
 
           switch (sseEvent.type) {
             case "connection":
-              console.log("📡 Dashboard SSE client ID:", sseEvent.data.clientId);
+              console.log(
+                "📡 Dashboard SSE client ID:",
+                sseEvent.data.clientId,
+              );
               break;
 
             case "status":
-              console.log("🐛 [useDashboardSSE] Raw SSE status received:", sseEvent.data);
-              console.log("🐛 [useDashboardSSE] servers structure:", sseEvent.data.servers);
-              console.log("🐛 [useDashboardSSE] servers.servers:", sseEvent.data.servers?.servers);
+              console.log(
+                "🐛 [useDashboardSSE] Raw SSE status received:",
+                sseEvent.data,
+              );
+              console.log(
+                "🐛 [useDashboardSSE] servers structure:",
+                sseEvent.data.servers,
+              );
+              console.log(
+                "🐛 [useDashboardSSE] servers.servers:",
+                sseEvent.data.servers?.servers,
+              );
               setStatus(sseEvent.data);
               break;
 
             case "server-event":
               console.log("🔔 Server event:", sseEvent.data);
-              setServerEvents(prev => [...prev, {
-                type: "server-event",
-                data: sseEvent.data,
-                timestamp: Date.now()
-              }]);
+              setServerEvents((prev) => [
+                ...prev,
+                {
+                  type: "server-event",
+                  data: sseEvent.data,
+                  timestamp: Date.now(),
+                },
+              ]);
               break;
 
             case "proxy-event":
               console.log("🔗 Proxy event:", sseEvent.data);
-              setServerEvents(prev => [...prev, {
-                type: "proxy-event",
-                data: sseEvent.data,
-                timestamp: Date.now()
-              }]);
+              setServerEvents((prev) => [
+                ...prev,
+                {
+                  type: "proxy-event",
+                  data: sseEvent.data,
+                  timestamp: Date.now(),
+                },
+              ]);
               break;
 
             case "heartbeat":
@@ -129,7 +150,7 @@ export function useDashboardSSE({
         console.error("📡 EventSource readyState:", eventSource.readyState);
         console.error("📡 EventSource url:", eventSource.url);
 
-        setConnectionState(prev => {
+        setConnectionState((prev) => {
           const newState = {
             ...prev,
             status: "error" as const,
@@ -139,11 +160,13 @@ export function useDashboardSSE({
           // Auto-reconnect if enabled and within retry limits
           if (autoReconnect && prev.retryCount < maxRetries) {
             const delay = retryDelay * Math.pow(2, prev.retryCount); // Exponential backoff
-            console.log(`📡 Reconnecting in ${delay}ms (attempt ${prev.retryCount + 1}/${maxRetries})`);
+            console.log(
+              `📡 Reconnecting in ${delay}ms (attempt ${prev.retryCount + 1}/${maxRetries})`,
+            );
 
             retryTimeoutRef.current = setTimeout(() => {
               if (mountedRef.current) {
-                setConnectionState(current => ({
+                setConnectionState((current) => ({
                   ...current,
                   retryCount: current.retryCount + 1,
                 }));
@@ -157,10 +180,9 @@ export function useDashboardSSE({
           return newState;
         });
       };
-
     } catch (error) {
       console.error("Failed to create EventSource:", error);
-      setConnectionState(prev => ({
+      setConnectionState((prev) => ({
         ...prev,
         status: "error",
         error: error instanceof Error ? error.message : "Failed to connect",
@@ -179,7 +201,7 @@ export function useDashboardSSE({
       retryTimeoutRef.current = null;
     }
 
-    setConnectionState(prev => ({
+    setConnectionState((prev) => ({
       ...prev,
       status: "disconnected",
     }));
@@ -187,7 +209,7 @@ export function useDashboardSSE({
 
   const reconnect = () => {
     disconnect();
-    setConnectionState(prev => ({ ...prev, retryCount: 0 }));
+    setConnectionState((prev) => ({ ...prev, retryCount: 0 }));
     connect();
   };
 

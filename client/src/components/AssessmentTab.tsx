@@ -47,9 +47,7 @@ import {
   CompatibilityCallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import JsonView from "./JsonView";
-import {
-  MCPSpecComplianceDisplay,
-} from "./ExtendedAssessmentCategories";
+import { MCPSpecComplianceDisplay } from "./ExtendedAssessmentCategories";
 import {
   AssessmentCategoryFilter,
   CategoryFilterState,
@@ -107,20 +105,36 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
     mcpSpecCompliance: true,
     // Removed non-essential categories: supplyChain, privacy, humanInLoop
   });
-  const [selectedToolDetails, setSelectedToolDetails] = useState<(ToolTestResult & { enhancedResult?: EnhancedToolTestResult }) | EnhancedToolTestResult | null>(null);
+  const [selectedToolDetails, setSelectedToolDetails] = useState<
+    | (ToolTestResult & { enhancedResult?: EnhancedToolTestResult })
+    | EnhancedToolTestResult
+    | null
+  >(null);
 
   // Type guard to safely access enhancedResult property
   const hasEnhancedResult = (
-    tool: ToolTestResult | EnhancedToolTestResult | (ToolTestResult & { enhancedResult?: EnhancedToolTestResult }) | null
+    tool:
+      | ToolTestResult
+      | EnhancedToolTestResult
+      | (ToolTestResult & { enhancedResult?: EnhancedToolTestResult })
+      | null,
   ): tool is ToolTestResult & { enhancedResult: EnhancedToolTestResult } => {
-    return tool !== null && 'enhancedResult' in tool && tool.enhancedResult !== undefined;
+    return (
+      tool !== null &&
+      "enhancedResult" in tool &&
+      tool.enhancedResult !== undefined
+    );
   };
 
   // Type guard for basic tool test results
   const isBasicToolResult = (
-    tool: ToolTestResult | EnhancedToolTestResult | (ToolTestResult & { enhancedResult?: EnhancedToolTestResult }) | null
+    tool:
+      | ToolTestResult
+      | EnhancedToolTestResult
+      | (ToolTestResult & { enhancedResult?: EnhancedToolTestResult })
+      | null,
   ): tool is ToolTestResult => {
-    return tool !== null && 'testParameters' in tool;
+    return tool !== null && "testParameters" in tool;
   };
 
   const assessmentService = useMemo(
@@ -162,7 +176,9 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
       }
 
       // Filter out NOT_APPLICABLE statuses - they shouldn't count toward overall assessment
-      const applicableStatuses = statuses.filter(status => status !== "NOT_APPLICABLE");
+      const applicableStatuses = statuses.filter(
+        (status) => status !== "NOT_APPLICABLE",
+      );
 
       // If no applicable categories are selected, return PASS
       if (applicableStatuses.length === 0) return "PASS";
@@ -171,7 +187,8 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
       if (applicableStatuses.includes("FAIL")) return "FAIL";
       if (applicableStatuses.filter((s) => s === "NEED_MORE_INFO").length >= 2)
         return "FAIL";
-      if (applicableStatuses.includes("NEED_MORE_INFO")) return "NEED_MORE_INFO";
+      if (applicableStatuses.includes("NEED_MORE_INFO"))
+        return "NEED_MORE_INFO";
       return "PASS";
     },
     [categoryFilter, config.enableExtendedAssessment],
@@ -196,13 +213,19 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
 
     try {
       console.log("🚀 AssessmentTab: Starting assessment with config:", config);
-      console.log("🛠️ AssessmentTab: Tools to assess:", tools.map(t => t.name));
+      console.log(
+        "🛠️ AssessmentTab: Tools to assess:",
+        tools.map((t) => t.name),
+      );
 
       const result = await assessmentService.runFullAssessment(
         serverName,
         tools,
         async (name, params) => {
-          console.log(`🧪 AssessmentTab: About to test tool ${name} with params:`, params);
+          console.log(
+            `🧪 AssessmentTab: About to test tool ${name} with params:`,
+            params,
+          );
           setCurrentTest(`Testing tool: ${name}`);
           const result = await callTool(name, params);
           console.log(`✅ AssessmentTab: Tool ${name} test result:`, result);
@@ -355,7 +378,9 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                 }
                 disabled={isRunning}
               />
-              <Label htmlFor="parallelTesting">Enable parallel testing (⚡ optimized for MCP servers)</Label>
+              <Label htmlFor="parallelTesting">
+                Enable parallel testing (⚡ optimized for MCP servers)
+              </Label>
             </div>
 
             {config.parallelTesting && (
@@ -369,14 +394,19 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                   value={config.maxParallelTests || 3}
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 1;
-                    setConfig({ ...config, maxParallelTests: Math.max(1, Math.min(5, value)) });
+                    setConfig({
+                      ...config,
+                      maxParallelTests: Math.max(1, Math.min(5, value)),
+                    });
                   }}
                   className="w-20"
                   disabled={isRunning}
                   min={1}
                   max={5}
                 />
-                <span className="text-xs text-muted-foreground">(1-5, optimal: 2-3)</span>
+                <span className="text-xs text-muted-foreground">
+                  (1-5, optimal: 2-3)
+                </span>
               </div>
             )}
 
@@ -491,7 +521,6 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                 </Button>
               </div>
             )}
-
           </div>
 
           {/* Action Buttons */}
@@ -1792,7 +1821,6 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                 />
               )}
 
-
             {/* Overall Recommendations */}
             {assessment.recommendations.length > 0 && (
               <div className="bg-muted p-4 rounded-lg">
@@ -1923,225 +1951,234 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                           </h3>
                           <div className="space-y-4">
                             {selectedToolDetails.enhancedResult.scenarioResults.map(
-                              (scenarioResult: ScenarioResult, index: number) => {
-                                return <div
-                                  key={index}
-                                  className="border rounded-lg p-3 bg-background max-w-full overflow-hidden"
-                                >
-                                  {/* Scenario Header */}
-                                  <div className="flex justify-between items-start mb-3 pb-2 border-b">
-                                    <div>
-                                      <h4 className="font-medium text-sm">
-                                        {scenarioResult.scenario?.name ||
-                                          `Scenario ${index + 1}`}
-                                      </h4>
-                                      {scenarioResult.scenario?.description && (
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                          {scenarioResult.scenario.description}
-                                        </p>
-                                      )}
-                                      {scenarioResult.scenario?.category && (
-                                        <span className="text-xs px-2 py-1 bg-muted rounded mt-1 inline-block">
-                                          {scenarioResult.scenario.category.replace(
-                                            "_",
-                                            " ",
-                                          )}
+                              (
+                                scenarioResult: ScenarioResult,
+                                index: number,
+                              ) => {
+                                return (
+                                  <div
+                                    key={index}
+                                    className="border rounded-lg p-3 bg-background max-w-full overflow-hidden"
+                                  >
+                                    {/* Scenario Header */}
+                                    <div className="flex justify-between items-start mb-3 pb-2 border-b">
+                                      <div>
+                                        <h4 className="font-medium text-sm">
+                                          {scenarioResult.scenario?.name ||
+                                            `Scenario ${index + 1}`}
+                                        </h4>
+                                        {scenarioResult.scenario
+                                          ?.description && (
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            {
+                                              scenarioResult.scenario
+                                                .description
+                                            }
+                                          </p>
+                                        )}
+                                        {scenarioResult.scenario?.category && (
+                                          <span className="text-xs px-2 py-1 bg-muted rounded mt-1 inline-block">
+                                            {scenarioResult.scenario.category.replace(
+                                              "_",
+                                              " ",
+                                            )}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-col items-end gap-1">
+                                        <span
+                                          className={`text-xs px-2 py-1 rounded font-medium ${
+                                            scenarioResult.validation?.isValid
+                                              ? "bg-green-100 text-green-800"
+                                              : "bg-red-100 text-red-800"
+                                          }`}
+                                        >
+                                          {scenarioResult.validation?.isValid
+                                            ? "PASSED"
+                                            : "FAILED"}
                                         </span>
-                                      )}
-                                    </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                      <span
-                                        className={`text-xs px-2 py-1 rounded font-medium ${
-                                          scenarioResult.validation?.isValid
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-red-100 text-red-800"
-                                        }`}
-                                      >
-                                        {scenarioResult.validation?.isValid
-                                          ? "PASSED"
-                                          : "FAILED"}
-                                      </span>
-                                      {scenarioResult.validation?.confidence !==
-                                        undefined && (
-                                        <span className="text-xs text-muted-foreground">
-                                          {(
-                                            scenarioResult.validation
-                                              .confidence * 100
-                                          ).toFixed(0)}
-                                          % confidence
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Test Input Parameters */}
-                                  {scenarioResult.scenario?.params && (
-                                    <div className="mb-3">
-                                      <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                        Test Input Parameters
-                                      </h5>
-                                      <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                                        <pre className="text-xs whitespace-pre-wrap break-words font-mono leading-relaxed">
-                                          {JSON.stringify(
-                                            scenarioResult.scenario.params,
-                                            null,
-                                            2,
-                                          )}
-                                        </pre>
+                                        {scenarioResult.validation
+                                          ?.confidence !== undefined && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {(
+                                              scenarioResult.validation
+                                                .confidence * 100
+                                            ).toFixed(0)}
+                                            % confidence
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
-                                  )}
 
-                                  {/* Tool Response */}
-                                  {(scenarioResult.response ||
-                                    scenarioResult.error) && (
-                                    <div className="mb-3">
-                                      <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                        Tool Response{" "}
-                                        {scenarioResult.executionTime &&
-                                          `(${scenarioResult.executionTime}ms)`}
-                                      </h5>
-                                      <div
-                                        className={`border rounded p-3 ${
-                                          scenarioResult.error
-                                            ? "bg-red-50 border-red-200"
-                                            : "bg-gray-50 border-gray-200"
-                                        }`}
-                                      >
-                                        <pre className="text-xs whitespace-pre-wrap break-words font-mono leading-relaxed">
-                                          {scenarioResult.error ||
-                                            (typeof scenarioResult.response ===
-                                            "string"
-                                              ? scenarioResult.response
-                                              : JSON.stringify(
-                                                  scenarioResult.response,
-                                                  null,
-                                                  2,
-                                                ))}
-                                        </pre>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Expected Behavior */}
-                                  {scenarioResult.scenario
-                                    ?.expectedBehavior && (
-                                    <div className="mb-3">
-                                      <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                        Expected Behavior
-                                      </h5>
-                                      <p className="text-xs text-gray-700 bg-yellow-50 border border-yellow-200 rounded p-2 whitespace-pre-wrap break-words">
-                                        {
-                                          scenarioResult.scenario
-                                            .expectedBehavior
-                                        }
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {/* Validation Results */}
-                                  {scenarioResult.validation && (
-                                    <div className="mb-3">
-                                      <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                        Assessment Results
-                                      </h5>
-                                      <div
-                                        className={`border rounded p-3 ${
-                                          scenarioResult.validation.isValid
-                                            ? "bg-green-50 border-green-200"
-                                            : "bg-red-50 border-red-200"
-                                        }`}
-                                      >
-                                        <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                                          <div>
-                                            <span className="font-medium">
-                                              Classification:
-                                            </span>{" "}
-                                            <span
-                                              className={
-                                                scenarioResult.validation
-                                                  .classification ===
-                                                "fully_working"
-                                                  ? "text-green-700 font-medium"
-                                                  : scenarioResult.validation
-                                                        .classification ===
-                                                      "partially_working"
-                                                    ? "text-yellow-700 font-medium"
-                                                    : "text-red-700 font-medium"
-                                              }
-                                            >
-                                              {scenarioResult.validation.classification?.replace(
-                                                "_",
-                                                " ",
-                                              ) || "unknown"}
-                                            </span>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">
-                                              Error Type:
-                                            </span>{" "}
-                                            {scenarioResult.validation.isError
-                                              ? "Execution Error"
-                                              : "Response Received"}
-                                          </div>
+                                    {/* Test Input Parameters */}
+                                    {scenarioResult.scenario?.params && (
+                                      <div className="mb-3">
+                                        <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                          Test Input Parameters
+                                        </h5>
+                                        <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                                          <pre className="text-xs whitespace-pre-wrap break-words font-mono leading-relaxed">
+                                            {JSON.stringify(
+                                              scenarioResult.scenario.params,
+                                              null,
+                                              2,
+                                            )}
+                                          </pre>
                                         </div>
-
-                                        {/* Issues */}
-                                        {scenarioResult.validation.issues &&
-                                          scenarioResult.validation.issues
-                                            .length > 0 && (
-                                            <div className="mb-2">
-                                              <span className="text-xs font-medium">
-                                                Issues Found:
-                                              </span>
-                                              <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                                                {scenarioResult.validation.issues.map(
-                                                  (
-                                                    issue: string,
-                                                    i: number,
-                                                  ) => (
-                                                    <li
-                                                      key={i}
-                                                      className="text-red-700"
-                                                    >
-                                                      {issue}
-                                                    </li>
-                                                  ),
-                                                )}
-                                              </ul>
-                                            </div>
-                                          )}
-
-                                        {/* Evidence */}
-                                        {scenarioResult.validation.evidence &&
-                                          scenarioResult.validation.evidence
-                                            .length > 0 && (
-                                            <div>
-                                              <span className="text-xs font-medium">
-                                                Evidence:
-                                              </span>
-                                              <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                                                {scenarioResult.validation.evidence.map(
-                                                  (
-                                                    evidence: string,
-                                                    i: number,
-                                                  ) => (
-                                                    <li
-                                                      key={i}
-                                                      className="text-green-700"
-                                                    >
-                                                      {evidence}
-                                                    </li>
-                                                  ),
-                                                )}
-                                              </ul>
-                                            </div>
-                                          )}
                                       </div>
-                                    </div>
-                                  )}
-                                </div>
-                              }
+                                    )}
+
+                                    {/* Tool Response */}
+                                    {(scenarioResult.response ||
+                                      scenarioResult.error) && (
+                                      <div className="mb-3">
+                                        <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                          Tool Response{" "}
+                                          {scenarioResult.executionTime &&
+                                            `(${scenarioResult.executionTime}ms)`}
+                                        </h5>
+                                        <div
+                                          className={`border rounded p-3 ${
+                                            scenarioResult.error
+                                              ? "bg-red-50 border-red-200"
+                                              : "bg-gray-50 border-gray-200"
+                                          }`}
+                                        >
+                                          <pre className="text-xs whitespace-pre-wrap break-words font-mono leading-relaxed">
+                                            {scenarioResult.error ||
+                                              (typeof scenarioResult.response ===
+                                              "string"
+                                                ? scenarioResult.response
+                                                : JSON.stringify(
+                                                    scenarioResult.response,
+                                                    null,
+                                                    2,
+                                                  ))}
+                                          </pre>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Expected Behavior */}
+                                    {scenarioResult.scenario
+                                      ?.expectedBehavior && (
+                                      <div className="mb-3">
+                                        <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                          Expected Behavior
+                                        </h5>
+                                        <p className="text-xs text-gray-700 bg-yellow-50 border border-yellow-200 rounded p-2 whitespace-pre-wrap break-words">
+                                          {
+                                            scenarioResult.scenario
+                                              .expectedBehavior
+                                          }
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {/* Validation Results */}
+                                    {scenarioResult.validation && (
+                                      <div className="mb-3">
+                                        <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                          Assessment Results
+                                        </h5>
+                                        <div
+                                          className={`border rounded p-3 ${
+                                            scenarioResult.validation.isValid
+                                              ? "bg-green-50 border-green-200"
+                                              : "bg-red-50 border-red-200"
+                                          }`}
+                                        >
+                                          <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                                            <div>
+                                              <span className="font-medium">
+                                                Classification:
+                                              </span>{" "}
+                                              <span
+                                                className={
+                                                  scenarioResult.validation
+                                                    .classification ===
+                                                  "fully_working"
+                                                    ? "text-green-700 font-medium"
+                                                    : scenarioResult.validation
+                                                          .classification ===
+                                                        "partially_working"
+                                                      ? "text-yellow-700 font-medium"
+                                                      : "text-red-700 font-medium"
+                                                }
+                                              >
+                                                {scenarioResult.validation.classification?.replace(
+                                                  "_",
+                                                  " ",
+                                                ) || "unknown"}
+                                              </span>
+                                            </div>
+                                            <div>
+                                              <span className="font-medium">
+                                                Error Type:
+                                              </span>{" "}
+                                              {scenarioResult.validation.isError
+                                                ? "Execution Error"
+                                                : "Response Received"}
+                                            </div>
+                                          </div>
+
+                                          {/* Issues */}
+                                          {scenarioResult.validation.issues &&
+                                            scenarioResult.validation.issues
+                                              .length > 0 && (
+                                              <div className="mb-2">
+                                                <span className="text-xs font-medium">
+                                                  Issues Found:
+                                                </span>
+                                                <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
+                                                  {scenarioResult.validation.issues.map(
+                                                    (
+                                                      issue: string,
+                                                      i: number,
+                                                    ) => (
+                                                      <li
+                                                        key={i}
+                                                        className="text-red-700"
+                                                      >
+                                                        {issue}
+                                                      </li>
+                                                    ),
+                                                  )}
+                                                </ul>
+                                              </div>
+                                            )}
+
+                                          {/* Evidence */}
+                                          {scenarioResult.validation.evidence &&
+                                            scenarioResult.validation.evidence
+                                              .length > 0 && (
+                                              <div>
+                                                <span className="text-xs font-medium">
+                                                  Evidence:
+                                                </span>
+                                                <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
+                                                  {scenarioResult.validation.evidence.map(
+                                                    (
+                                                      evidence: string,
+                                                      i: number,
+                                                    ) => (
+                                                      <li
+                                                        key={i}
+                                                        className="text-green-700"
+                                                      >
+                                                        {evidence}
+                                                      </li>
+                                                    ),
+                                                  )}
+                                                </ul>
+                                              </div>
+                                            )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              },
                             )}
                           </div>
                         </div>
@@ -2185,54 +2222,57 @@ const AssessmentTab: React.FC<AssessmentTabProps> = ({
                 )}
 
                 {/* Basic test data if no enhanced results */}
-                {!hasEnhancedResult(selectedToolDetails) && isBasicToolResult(selectedToolDetails) && (
-                  <>
-                    {selectedToolDetails.testParameters && (
-                      <div className="bg-secondary/50 rounded-lg p-4">
-                        <h3 className="font-semibold mb-2">Test Parameters</h3>
-                        <pre className="text-xs bg-background rounded p-2 overflow-x-auto">
-                          {JSON.stringify(
-                            selectedToolDetails.testParameters,
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </div>
-                    )}
+                {!hasEnhancedResult(selectedToolDetails) &&
+                  isBasicToolResult(selectedToolDetails) && (
+                    <>
+                      {selectedToolDetails.testParameters && (
+                        <div className="bg-secondary/50 rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">
+                            Test Parameters
+                          </h3>
+                          <pre className="text-xs bg-background rounded p-2 overflow-x-auto">
+                            {JSON.stringify(
+                              selectedToolDetails.testParameters,
+                              null,
+                              2,
+                            )}
+                          </pre>
+                        </div>
+                      )}
 
-                    {selectedToolDetails.response && (
-                      <div className="bg-secondary/50 rounded-lg p-4">
-                        <h3 className="font-semibold mb-2">Response</h3>
-                        <pre className="text-xs bg-background rounded p-2 overflow-x-auto">
-                          {typeof selectedToolDetails.response === "string"
-                            ? selectedToolDetails.response
-                            : JSON.stringify(
-                                selectedToolDetails.response,
-                                null,
-                                2,
-                              )}
-                        </pre>
-                      </div>
-                    )}
+                      {selectedToolDetails.response && (
+                        <div className="bg-secondary/50 rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">Response</h3>
+                          <pre className="text-xs bg-background rounded p-2 overflow-x-auto">
+                            {typeof selectedToolDetails.response === "string"
+                              ? selectedToolDetails.response
+                              : JSON.stringify(
+                                  selectedToolDetails.response,
+                                  null,
+                                  2,
+                                )}
+                          </pre>
+                        </div>
+                      )}
 
-                    {selectedToolDetails.error && (
-                      <div className="bg-red-50 rounded-lg p-4">
-                        <h3 className="font-semibold mb-2 text-red-800">
-                          Error
-                        </h3>
-                        <pre className="text-xs text-red-700 bg-white rounded p-2 overflow-x-auto">
-                          {typeof selectedToolDetails.error === "string"
-                            ? selectedToolDetails.error
-                            : JSON.stringify(
-                                selectedToolDetails.error,
-                                null,
-                                2,
-                              )}
-                        </pre>
-                      </div>
-                    )}
-                  </>
-                )}
+                      {selectedToolDetails.error && (
+                        <div className="bg-red-50 rounded-lg p-4">
+                          <h3 className="font-semibold mb-2 text-red-800">
+                            Error
+                          </h3>
+                          <pre className="text-xs text-red-700 bg-white rounded p-2 overflow-x-auto">
+                            {typeof selectedToolDetails.error === "string"
+                              ? selectedToolDetails.error
+                              : JSON.stringify(
+                                  selectedToolDetails.error,
+                                  null,
+                                  2,
+                                )}
+                          </pre>
+                        </div>
+                      )}
+                    </>
+                  )}
               </div>
             )}
           </DialogContent>
@@ -2366,7 +2406,7 @@ const ErrorTestItem: React.FC<{
                             test.actualResponse?.rawResponse || {},
                             null,
                             2,
-                          ) || '{}'}
+                          ) || "{}"}
                     </pre>
                   </details>
                 )}
@@ -2881,7 +2921,6 @@ const generateTextReport = (
     );
   }
 
-
   if (assessment.dynamicSecurity) {
     lines.push(
       "",
@@ -2894,8 +2933,6 @@ const generateTextReport = (
       `- Anomaly Score: ${assessment.dynamicSecurity.behaviorAnalysis.anomalyScore.toFixed(1)}/100`,
     );
   }
-
-
 
   if (assessment.recommendations.length > 0) {
     lines.push("", "RECOMMENDATIONS", "-".repeat(40));

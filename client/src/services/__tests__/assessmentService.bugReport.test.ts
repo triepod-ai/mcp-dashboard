@@ -456,7 +456,6 @@ describe("CRITICAL SECURITY BUGS - Assessment Service", () => {
     it("Demonstrates false sense of security with comprehensive vulnerable server", async () => {
       // Create server with multiple serious vulnerabilities that current assessment misses
       mockCallTool.mockImplementation((toolName) => {
-
         // SQL injection vulnerability
         if (toolName === "search_data") {
           return Promise.resolve({

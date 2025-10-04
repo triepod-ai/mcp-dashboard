@@ -135,7 +135,10 @@ const ToolResults = ({
           <div className="mb-4">
             <h5 className="font-semibold mb-2 text-sm">Structured Content:</h5>
             <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-              <JsonView data={structuredResult.structuredContent} showViewToggle={true} />
+              <JsonView
+                data={structuredResult.structuredContent}
+                showViewToggle={true}
+              />
               {validationResult && (
                 <div
                   className={`mt-2 p-2 rounded text-sm ${
@@ -195,7 +198,11 @@ const ToolResults = ({
             {structuredResult.content.map((item, index) => (
               <div key={index} className="mb-2">
                 {item.type === "text" && (
-                  <JsonView data={item.text} isError={isError} showViewToggle={true} />
+                  <JsonView
+                    data={item.text}
+                    isError={isError}
+                    showViewToggle={true}
+                  />
                 )}
                 {item.type === "image" && (
                   <img

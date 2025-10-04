@@ -210,7 +210,11 @@ export class TestDataGenerator {
 
       // Test numeric boundaries
       if (schema.type === "number" || schema.type === "integer") {
-        const minimum = safeGetProperty(schema, "minimum", (v): v is number => typeof v === "number");
+        const minimum = safeGetProperty(
+          schema,
+          "minimum",
+          (v): v is number => typeof v === "number",
+        );
         if (minimum !== undefined) {
           const params = this.generateRealisticParams(tool, "typical");
           params[key] = minimum;
@@ -223,7 +227,11 @@ export class TestDataGenerator {
           });
         }
 
-        const maximum = safeGetProperty(schema, "maximum", (v): v is number => typeof v === "number");
+        const maximum = safeGetProperty(
+          schema,
+          "maximum",
+          (v): v is number => typeof v === "number",
+        );
         if (maximum !== undefined) {
           const params = this.generateRealisticParams(tool, "typical");
           params[key] = maximum;
@@ -239,7 +247,11 @@ export class TestDataGenerator {
 
       // Test string length boundaries
       if (schema.type === "string") {
-        const minLength = safeGetProperty(schema, "minLength", (v): v is number => typeof v === "number");
+        const minLength = safeGetProperty(
+          schema,
+          "minLength",
+          (v): v is number => typeof v === "number",
+        );
         if (minLength !== undefined) {
           const params = this.generateRealisticParams(tool, "typical");
           params[key] = "a".repeat(minLength);
@@ -252,7 +264,11 @@ export class TestDataGenerator {
           });
         }
 
-        const maxLength = safeGetProperty(schema, "maxLength", (v): v is number => typeof v === "number");
+        const maxLength = safeGetProperty(
+          schema,
+          "maxLength",
+          (v): v is number => typeof v === "number",
+        );
         if (maxLength !== undefined) {
           const params = this.generateRealisticParams(tool, "typical");
           params[key] = "a".repeat(maxLength);
@@ -364,7 +380,9 @@ export class TestDataGenerator {
     switch (schema.type) {
       case "string":
         // Check for enums first using safe property access
-        const enumValues = safeGetProperty(schema, "enum", (v): v is string[] => Array.isArray(v));
+        const enumValues = safeGetProperty(schema, "enum", (v): v is string[] =>
+          Array.isArray(v),
+        );
         if (enumValues && enumValues.length > 0) {
           return variant === "typical"
             ? enumValues[0]
@@ -488,8 +506,16 @@ export class TestDataGenerator {
 
       case "number":
       case "integer":
-        const maximum = safeGetProperty(schema, "maximum", (v): v is number => typeof v === "number");
-        const minimum = safeGetProperty(schema, "minimum", (v): v is number => typeof v === "number");
+        const maximum = safeGetProperty(
+          schema,
+          "maximum",
+          (v): v is number => typeof v === "number",
+        );
+        const minimum = safeGetProperty(
+          schema,
+          "minimum",
+          (v): v is number => typeof v === "number",
+        );
 
         if (variant === "maximum") {
           return maximum || 999999;

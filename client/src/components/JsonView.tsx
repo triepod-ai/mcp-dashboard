@@ -8,7 +8,7 @@ import { getDataType, tryParseJson } from "@/utils/jsonUtils";
 import useCopy from "@/lib/hooks/useCopy";
 import { jsonExpansionStore } from "@/utils/jsonExpansionStore";
 
-type ViewMode = 'raw' | 'formatted';
+type ViewMode = "raw" | "formatted";
 
 interface JsonViewProps {
   data: unknown;
@@ -30,9 +30,9 @@ const JsonView = memo(
     className,
     withCopyButton = true,
     isError = false,
-    defaultViewMode = 'raw',
+    defaultViewMode = "raw",
     showViewToggle = true,
-    instanceId = 'default',
+    instanceId = "default",
   }: JsonViewProps) => {
     const { toast } = useToast();
     const { copied, setCopied } = useCopy();
@@ -44,19 +44,28 @@ const JsonView = memo(
     }, []);
 
     // Get view mode from global store
-    const currentViewMode = jsonExpansionStore.getViewMode(instanceId, defaultViewMode);
+    const currentViewMode = jsonExpansionStore.getViewMode(
+      instanceId,
+      defaultViewMode,
+    );
 
     // Handle view mode change
-    const handleViewModeChange = useCallback((newViewMode: ViewMode) => {
-      jsonExpansionStore.setViewMode(instanceId, newViewMode);
-      triggerRender(); // Force re-render to reflect the change
-    }, [instanceId, triggerRender]);
+    const handleViewModeChange = useCallback(
+      (newViewMode: ViewMode) => {
+        jsonExpansionStore.setViewMode(instanceId, newViewMode);
+        triggerRender(); // Force re-render to reflect the change
+      },
+      [instanceId, triggerRender],
+    );
 
     // Debug logging
     useEffect(() => {
       console.log(`[JsonView] Component rendered, instanceId: ${instanceId}`);
       console.log(`[JsonView] Data changed:`, data);
-      console.log(`[JsonView] Current expansion state:`, jsonExpansionStore.getExpansionState(instanceId));
+      console.log(
+        `[JsonView] Current expansion state:`,
+        jsonExpansionStore.getExpansionState(instanceId),
+      );
     });
 
     const normalizedData = useMemo(() => {
@@ -91,18 +100,18 @@ const JsonView = memo(
             <div className="flex items-center rounded-md border bg-background">
               <Button
                 size="sm"
-                variant={currentViewMode === 'raw' ? 'default' : 'ghost'}
+                variant={currentViewMode === "raw" ? "default" : "ghost"}
                 className="h-7 px-2 text-xs"
-                onClick={() => handleViewModeChange('raw')}
+                onClick={() => handleViewModeChange("raw")}
               >
                 <Code2 className="size-3 mr-1" />
                 Raw
               </Button>
               <Button
                 size="sm"
-                variant={currentViewMode === 'formatted' ? 'default' : 'ghost'}
+                variant={currentViewMode === "formatted" ? "default" : "ghost"}
                 className="h-7 px-2 text-xs"
-                onClick={() => handleViewModeChange('formatted')}
+                onClick={() => handleViewModeChange("formatted")}
               >
                 <FileText className="size-3 mr-1" />
                 Formatted
@@ -124,11 +133,13 @@ const JsonView = memo(
             </Button>
           )}
         </div>
-        <div className={clsx(
-          "text-sm transition-all duration-300 mt-4",
-          currentViewMode === 'raw' ? 'font-mono' : 'font-sans'
-        )}>
-          {currentViewMode === 'raw' ? (
+        <div
+          className={clsx(
+            "text-sm transition-all duration-300 mt-4",
+            currentViewMode === "raw" ? "font-mono" : "font-sans",
+          )}
+        >
+          {currentViewMode === "raw" ? (
             <JsonNode
               data={normalizedData as JsonValue}
               name={name}
@@ -178,11 +189,17 @@ const JsonNode = memo(
     nodePath,
   }: JsonNodeProps) => {
     const currentState = jsonExpansionStore.getExpansionState(instanceId);
-    const isExpanded = currentState[nodePath] ?? (depth < initialExpandDepth);
+    const isExpanded = currentState[nodePath] ?? depth < initialExpandDepth;
 
     const toggleExpansion = () => {
-      console.log(`[JsonNode] Toggling expansion for ${instanceId}/${nodePath}, current: ${isExpanded}`);
-      const newExpanded = jsonExpansionStore.toggleNodeExpansion(instanceId, nodePath, depth < initialExpandDepth);
+      console.log(
+        `[JsonNode] Toggling expansion for ${instanceId}/${nodePath}, current: ${isExpanded}`,
+      );
+      const newExpanded = jsonExpansionStore.toggleNodeExpansion(
+        instanceId,
+        nodePath,
+        depth < initialExpandDepth,
+      );
       console.log(`[JsonNode] New expansion state: ${newExpanded}`);
       onToggleExpansion(); // Trigger re-render of parent component
     };
@@ -368,168 +385,226 @@ interface FormattedViewProps {
   onToggleExpansion: () => void;
 }
 
-const FormattedView = memo(({ data, isError, instanceId, onToggleExpansion }: FormattedViewProps) => {
-  // Use global store for text expansion state in formatted view
-  const getExpandedState = (path: string): boolean => {
-    const currentState = jsonExpansionStore.getExpansionState(`${instanceId}-formatted`);
-    return currentState[path] || false;
-  };
+const FormattedView = memo(
+  ({ data, isError, instanceId, onToggleExpansion }: FormattedViewProps) => {
+    // Use global store for text expansion state in formatted view
+    const getExpandedState = (path: string): boolean => {
+      const currentState = jsonExpansionStore.getExpansionState(
+        `${instanceId}-formatted`,
+      );
+      return currentState[path] || false;
+    };
 
-  const toggleTextExpansion = (path: string) => {
-    jsonExpansionStore.toggleNodeExpansion(`${instanceId}-formatted`, path, false);
-    onToggleExpansion(); // Trigger re-render
-  };
+    const toggleTextExpansion = (path: string) => {
+      jsonExpansionStore.toggleNodeExpansion(
+        `${instanceId}-formatted`,
+        path,
+        false,
+      );
+      onToggleExpansion(); // Trigger re-render
+    };
 
-  const formatValue = (value: JsonValue, path: string = ""): React.ReactNode => {
-    if (value === null || value === undefined) {
-      return <span className="text-gray-500 italic">Not provided</span>;
-    }
+    const formatValue = (
+      value: JsonValue,
+      path: string = "",
+    ): React.ReactNode => {
+      if (value === null || value === undefined) {
+        return <span className="text-gray-500 italic">Not provided</span>;
+      }
 
-    if (typeof value === 'boolean') {
-      return <span className={value ? "text-green-600" : "text-red-600"}>{value ? 'Yes' : 'No'}</span>;
-    }
-
-    if (typeof value === 'string') {
-      // Handle URLs
-      if (value.startsWith('http://') || value.startsWith('https://')) {
+      if (typeof value === "boolean") {
         return (
-          <a href={value} target="_blank" rel="noopener noreferrer"
-             className="text-blue-600 hover:text-blue-800 underline">
-            {value}
-          </a>
+          <span className={value ? "text-green-600" : "text-red-600"}>
+            {value ? "Yes" : "No"}
+          </span>
         );
       }
-      // Handle long text with controlled expansion using global store
-      if (value.length > 100) {
-        const isExpanded = getExpandedState(path);
 
-        return (
-          <div>
-            {isExpanded ? (
-              // When expanded, show static text with collapse option, no hover effects
-              <div className="space-y-2">
+      if (typeof value === "string") {
+        // Handle URLs
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+          return (
+            <a
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              {value}
+            </a>
+          );
+        }
+        // Handle long text with controlled expansion using global store
+        if (value.length > 100) {
+          const isExpanded = getExpandedState(path);
+
+          return (
+            <div>
+              {isExpanded ? (
+                // When expanded, show static text with collapse option, no hover effects
+                <div className="space-y-2">
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer underline"
+                    onClick={() => toggleTextExpansion(path)}
+                  >
+                    Click to collapse
+                  </button>
+                  <div
+                    className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm whitespace-pre-wrap cursor-pointer"
+                    onDoubleClick={() => toggleTextExpansion(path)}
+                    title="Double-click to collapse"
+                  >
+                    {value}
+                  </div>
+                </div>
+              ) : (
+                // When collapsed, show truncated text with hover title for preview
                 <button
-                  className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer underline"
+                  className="text-gray-700 hover:text-gray-900 cursor-pointer text-left"
                   onClick={() => toggleTextExpansion(path)}
+                  title={value} // Only show hover tooltip when collapsed
                 >
-                  Click to collapse
+                  {`${value.slice(0, 100)}... (click to expand)`}
                 </button>
-                <div
-                  className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm whitespace-pre-wrap cursor-pointer"
-                  onDoubleClick={() => toggleTextExpansion(path)}
-                  title="Double-click to collapse"
-                >
-                  {value}
+              )}
+            </div>
+          );
+        }
+        return (
+          <span
+            className={
+              isError ? "text-red-600" : "text-gray-800 dark:text-gray-200"
+            }
+          >
+            {value}
+          </span>
+        );
+      }
+
+      if (typeof value === "number") {
+        return (
+          <span className="text-blue-600 font-medium">
+            {value.toLocaleString()}
+          </span>
+        );
+      }
+
+      return <span className="text-gray-600">{String(value)}</span>;
+    };
+
+    const formatKey = (key: string): string => {
+      return key
+        .replace(/([A-Z])/g, " $1") // Add space before capitals
+        .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+        .replace(/_/g, " "); // Replace underscores with spaces
+    };
+
+    const renderObject = (
+      obj: Record<string, JsonValue>,
+      level = 0,
+      path = "",
+    ) => {
+      const entries = Object.entries(obj);
+      const importantKeys = [
+        "name",
+        "title",
+        "description",
+        "status",
+        "type",
+        "success",
+        "error",
+        "message",
+      ];
+      const sortedEntries = entries.sort(([a], [b]) => {
+        const aImportant = importantKeys.includes(a.toLowerCase());
+        const bImportant = importantKeys.includes(b.toLowerCase());
+        if (aImportant && !bImportant) return -1;
+        if (!aImportant && bImportant) return 1;
+        return a.localeCompare(b);
+      });
+
+      return (
+        <div
+          className={
+            level > 0
+              ? "ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4"
+              : ""
+          }
+        >
+          {sortedEntries.map(([key, value]) => (
+            <div key={key} className="mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+                <div className="flex-shrink-0 w-full sm:w-32">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {formatKey(key)}:
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  {Array.isArray(value) ? (
+                    renderArray(value, level + 1, `${path}.${key}`)
+                  ) : value && typeof value === "object" ? (
+                    renderObject(
+                      value as Record<string, JsonValue>,
+                      level + 1,
+                      `${path}.${key}`,
+                    )
+                  ) : (
+                    <div className="break-words">
+                      {formatValue(value, `${path}.${key}`)}
+                    </div>
+                  )}
                 </div>
               </div>
-            ) : (
-              // When collapsed, show truncated text with hover title for preview
-              <button
-                className="text-gray-700 hover:text-gray-900 cursor-pointer text-left"
-                onClick={() => toggleTextExpansion(path)}
-                title={value} // Only show hover tooltip when collapsed
-              >
-                {`${value.slice(0, 100)}... (click to expand)`}
-              </button>
-            )}
-          </div>
-        );
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    const renderArray = (arr: JsonValue[], level = 0, path = "") => {
+      if (arr.length === 0) {
+        return <span className="text-gray-500 italic">Empty list</span>;
       }
-      return <span className={isError ? "text-red-600" : "text-gray-800 dark:text-gray-200"}>{value}</span>;
-    }
 
-    if (typeof value === 'number') {
-      return <span className="text-blue-600 font-medium">{value.toLocaleString()}</span>;
-    }
-
-    return <span className="text-gray-600">{String(value)}</span>;
-  };
-
-  const formatKey = (key: string): string => {
-    return key
-      .replace(/([A-Z])/g, ' $1') // Add space before capitals
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .replace(/_/g, ' '); // Replace underscores with spaces
-  };
-
-  const renderObject = (obj: Record<string, JsonValue>, level = 0, path = "") => {
-    const entries = Object.entries(obj);
-    const importantKeys = ['name', 'title', 'description', 'status', 'type', 'success', 'error', 'message'];
-    const sortedEntries = entries.sort(([a], [b]) => {
-      const aImportant = importantKeys.includes(a.toLowerCase());
-      const bImportant = importantKeys.includes(b.toLowerCase());
-      if (aImportant && !bImportant) return -1;
-      if (!aImportant && bImportant) return 1;
-      return a.localeCompare(b);
-    });
-
-    return (
-      <div className={level > 0 ? "ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4" : ""}>
-        {sortedEntries.map(([key, value]) => (
-          <div key={key} className="mb-3">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
-              <div className="flex-shrink-0 w-full sm:w-32">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {formatKey(key)}:
-                </span>
-              </div>
+      return (
+        <div className={level > 0 ? "space-y-2" : ""}>
+          {arr.map((item, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <span className="flex-shrink-0 text-xs text-gray-500 mt-1">
+                {index + 1}.
+              </span>
               <div className="flex-1 min-w-0">
-                {Array.isArray(value) ? (
-                  renderArray(value, level + 1, `${path}.${key}`)
-                ) : value && typeof value === 'object' ? (
-                  renderObject(value as Record<string, JsonValue>, level + 1, `${path}.${key}`)
+                {Array.isArray(item) ? (
+                  renderArray(item, level + 1, `${path}[${index}]`)
+                ) : item && typeof item === "object" ? (
+                  renderObject(
+                    item as Record<string, JsonValue>,
+                    level + 1,
+                    `${path}[${index}]`,
+                  )
                 ) : (
                   <div className="break-words">
-                    {formatValue(value, `${path}.${key}`)}
+                    {formatValue(item, `${path}[${index}]`)}
                   </div>
                 )}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+          ))}
+        </div>
+      );
+    };
 
-  const renderArray = (arr: JsonValue[], level = 0, path = "") => {
-    if (arr.length === 0) {
-      return <span className="text-gray-500 italic">Empty list</span>;
+    if (Array.isArray(data)) {
+      return <div className="space-y-2">{renderArray(data, 0, "root")}</div>;
     }
 
-    return (
-      <div className={level > 0 ? "space-y-2" : ""}>
-        {arr.map((item, index) => (
-          <div key={index} className="flex items-start gap-2">
-            <span className="flex-shrink-0 text-xs text-gray-500 mt-1">
-              {index + 1}.
-            </span>
-            <div className="flex-1 min-w-0">
-              {Array.isArray(item) ? (
-                renderArray(item, level + 1, `${path}[${index}]`)
-              ) : item && typeof item === 'object' ? (
-                renderObject(item as Record<string, JsonValue>, level + 1, `${path}[${index}]`)
-              ) : (
-                <div className="break-words">
-                  {formatValue(item, `${path}[${index}]`)}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+    if (data && typeof data === "object") {
+      return renderObject(data as Record<string, JsonValue>, 0, "root");
+    }
 
-  if (Array.isArray(data)) {
-    return <div className="space-y-2">{renderArray(data, 0, "root")}</div>;
-  }
-
-  if (data && typeof data === 'object') {
-    return renderObject(data as Record<string, JsonValue>, 0, "root");
-  }
-
-  return <div>{formatValue(data, "root")}</div>;
-});
+    return <div>{formatValue(data, "root")}</div>;
+  },
+);
 
 FormattedView.displayName = "FormattedView";
 

@@ -6,9 +6,7 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import type { CompatibilityCallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { JsonSchemaType } from "../utils/jsonUtils";
-import {
-  generateToolTestSuite,
-} from "../utils/testDataGenerator";
+import { generateToolTestSuite } from "../utils/testDataGenerator";
 
 /**
  * Test result for a single test case
@@ -16,7 +14,13 @@ import {
 export interface TestCaseResult {
   testId: string;
   testName: string;
-  category: "valid" | "missing_required" | "wrong_type" | "edge_case" | "boundary" | "fuzzing";
+  category:
+    | "valid"
+    | "missing_required"
+    | "wrong_type"
+    | "edge_case"
+    | "boundary"
+    | "fuzzing";
   input: Record<string, unknown>;
   passed: boolean;
   expectedOutcome: "success" | "error";
@@ -98,11 +102,14 @@ export class TestHarness {
     tool: Tool,
     callTool: (
       name: string,
-      params: Record<string, unknown>
-    ) => Promise<CompatibilityCallToolResult>
+      params: Record<string, unknown>,
+    ) => Promise<CompatibilityCallToolResult>,
   ): Promise<ToolTestResults> {
     const startTime = Date.now();
-    const properties = (tool.inputSchema?.properties || {}) as Record<string, JsonSchemaType>;
+    const properties = (tool.inputSchema?.properties || {}) as Record<
+      string,
+      JsonSchemaType
+    >;
     const required = tool.inputSchema?.required || [];
 
     // Generate test suite
@@ -117,7 +124,7 @@ export class TestHarness {
 
     if (this.config.includeValidTests) {
       suite.valid.forEach((input) =>
-        allTests.push({ category: "valid", input, expectedOutcome: "success" })
+        allTests.push({ category: "valid", input, expectedOutcome: "success" }),
       );
     }
 
@@ -127,7 +134,7 @@ export class TestHarness {
           category: "missing_required",
           input,
           expectedOutcome: "error",
-        })
+        }),
       );
     }
 
@@ -137,25 +144,33 @@ export class TestHarness {
           category: "wrong_type",
           input,
           expectedOutcome: "error",
-        })
+        }),
       );
     }
 
     if (this.config.includeEdgeCaseTests) {
       suite.edgeCases.forEach((input) =>
-        allTests.push({ category: "edge_case", input, expectedOutcome: "success" })
+        allTests.push({
+          category: "edge_case",
+          input,
+          expectedOutcome: "success",
+        }),
       );
     }
 
     if (this.config.includeBoundaryTests) {
       suite.boundaries.forEach((input) =>
-        allTests.push({ category: "boundary", input, expectedOutcome: "success" })
+        allTests.push({
+          category: "boundary",
+          input,
+          expectedOutcome: "success",
+        }),
       );
     }
 
     if (this.config.includeFuzzingTests) {
       suite.fuzzing.forEach((input) =>
-        allTests.push({ category: "fuzzing", input, expectedOutcome: "error" })
+        allTests.push({ category: "fuzzing", input, expectedOutcome: "error" }),
       );
     }
 
@@ -167,7 +182,7 @@ export class TestHarness {
       const batches = this.chunkArray(allTests, this.config.maxParallel);
       for (const batch of batches) {
         const batchResults = await Promise.all(
-          batch.map((test) => this.executeTest(tool.name, test, callTool))
+          batch.map((test) => this.executeTest(tool.name, test, callTool)),
         );
         results.push(...batchResults);
 
@@ -208,8 +223,8 @@ export class TestHarness {
     },
     callTool: (
       name: string,
-      params: Record<string, unknown>
-    ) => Promise<CompatibilityCallToolResult>
+      params: Record<string, unknown>,
+    ) => Promise<CompatibilityCallToolResult>,
   ): Promise<TestCaseResult> {
     const testId = `test-${++this.testIdCounter}`;
     const testName = this.getTestName(test.category, test.input);
@@ -223,7 +238,7 @@ export class TestHarness {
       // Execute tool with timeout
       const response = await this.withTimeout(
         callTool(toolName, test.input),
-        this.config.timeout
+        this.config.timeout,
       );
 
       const duration = Date.now() - startTime;
@@ -268,7 +283,7 @@ export class TestHarness {
   private analyzeResults(
     toolName: string,
     results: TestCaseResult[],
-    duration: number
+    duration: number,
   ): ToolTestResults {
     const totalTests = results.length;
     const passedTests = results.filter((r) => r.passed).length;
@@ -333,20 +348,18 @@ export class TestHarness {
    */
   private generateRecommendations(
     summary: ToolTestResults["summary"],
-    results: TestCaseResult[]
+    results: TestCaseResult[],
   ): string[] {
     const recommendations: string[] = [];
 
     // Check valid cases
     if (summary.validCases.total > 0 && summary.validCases.passed === 0) {
       recommendations.push(
-        "❌ CRITICAL: Tool fails on all valid inputs. Check basic functionality."
+        "❌ CRITICAL: Tool fails on all valid inputs. Check basic functionality.",
       );
-    } else if (
-      summary.validCases.passed < summary.validCases.total * 0.8
-    ) {
+    } else if (summary.validCases.passed < summary.validCases.total * 0.8) {
       recommendations.push(
-        "⚠️ Tool has inconsistent behavior with valid inputs. Review implementation."
+        "⚠️ Tool has inconsistent behavior with valid inputs. Review implementation.",
       );
     }
 
@@ -356,7 +369,7 @@ export class TestHarness {
       summary.missingRequired.passed < summary.missingRequired.total * 0.8
     ) {
       recommendations.push(
-        "⚠️ Tool does not properly validate required parameters. Add validation."
+        "⚠️ Tool does not properly validate required parameters. Add validation.",
       );
     }
 
@@ -366,7 +379,7 @@ export class TestHarness {
       summary.wrongTypes.passed < summary.wrongTypes.total * 0.8
     ) {
       recommendations.push(
-        "⚠️ Tool does not properly handle wrong parameter types. Add type checking."
+        "⚠️ Tool does not properly handle wrong parameter types. Add type checking.",
       );
     }
 
@@ -376,7 +389,7 @@ export class TestHarness {
       summary.edgeCases.passed < summary.edgeCases.total * 0.5
     ) {
       recommendations.push(
-        "⚠️ Tool struggles with edge cases (empty strings, nulls, etc.). Add edge case handling."
+        "⚠️ Tool struggles with edge cases (empty strings, nulls, etc.). Add edge case handling.",
       );
     }
 
@@ -386,7 +399,7 @@ export class TestHarness {
       summary.fuzzing.passed < summary.fuzzing.total * 0.7
     ) {
       recommendations.push(
-        "🔒 SECURITY: Tool may be vulnerable to injection attacks. Add input sanitization."
+        "🔒 SECURITY: Tool may be vulnerable to injection attacks. Add input sanitization.",
       );
     }
 
@@ -396,7 +409,7 @@ export class TestHarness {
       summary.boundaries.passed < summary.boundaries.total * 0.8
     ) {
       recommendations.push(
-        "⚠️ Tool does not handle boundary values well. Check min/max constraints."
+        "⚠️ Tool does not handle boundary values well. Check min/max constraints.",
       );
     }
 
@@ -405,12 +418,14 @@ export class TestHarness {
       results.reduce((sum, r) => sum + r.duration, 0) / results.length;
     if (avgDuration > 3000) {
       recommendations.push(
-        `⏱️ PERFORMANCE: Average response time is ${avgDuration.toFixed(0)}ms. Consider optimization.`
+        `⏱️ PERFORMANCE: Average response time is ${avgDuration.toFixed(0)}ms. Consider optimization.`,
       );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push("✅ Tool passed all tests. Excellent implementation!");
+      recommendations.push(
+        "✅ Tool passed all tests. Excellent implementation!",
+      );
     }
 
     return recommendations;
@@ -421,7 +436,7 @@ export class TestHarness {
    */
   private getTestName(
     category: TestCaseResult["category"],
-    input: Record<string, unknown>
+    input: Record<string, unknown>,
   ): string {
     const categoryNames = {
       valid: "Valid input",
@@ -444,7 +459,7 @@ export class TestHarness {
     return Promise.race([
       promise,
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+        setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms),
       ),
     ]);
   }
@@ -468,8 +483,8 @@ export async function quickTest(
   tool: Tool,
   callTool: (
     name: string,
-    params: Record<string, unknown>
-  ) => Promise<CompatibilityCallToolResult>
+    params: Record<string, unknown>,
+  ) => Promise<CompatibilityCallToolResult>,
 ): Promise<ToolTestResults> {
   const harness = new TestHarness({
     timeout: 3000,
@@ -492,8 +507,8 @@ export async function comprehensiveTest(
   tool: Tool,
   callTool: (
     name: string,
-    params: Record<string, unknown>
-  ) => Promise<CompatibilityCallToolResult>
+    params: Record<string, unknown>,
+  ) => Promise<CompatibilityCallToolResult>,
 ): Promise<ToolTestResults> {
   const harness = new TestHarness({
     timeout: 5000,
@@ -517,8 +532,8 @@ export async function securityTest(
   tool: Tool,
   callTool: (
     name: string,
-    params: Record<string, unknown>
-  ) => Promise<CompatibilityCallToolResult>
+    params: Record<string, unknown>,
+  ) => Promise<CompatibilityCallToolResult>,
 ): Promise<ToolTestResults> {
   const harness = new TestHarness({
     timeout: 5000,

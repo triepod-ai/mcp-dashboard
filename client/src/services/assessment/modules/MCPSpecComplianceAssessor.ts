@@ -45,15 +45,15 @@ interface OAuthMetadata {
 
 // Type guards for safe property access
 function isAnnotationMetadata(obj: unknown): obj is AnnotationMetadata {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 
 function isStreamingMetadata(obj: unknown): obj is StreamingMetadata {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 
 function isOAuthMetadata(obj: unknown): obj is OAuthMetadata {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 
 export class MCPSpecComplianceAssessor extends BaseAssessor {
@@ -131,7 +131,10 @@ export class MCPSpecComplianceAssessor extends BaseAssessor {
    */
   private extractProtocolVersion(context: AssessmentContext): string {
     // Try metadata.protocolVersion first
-    if (context.serverInfo?.metadata?.protocolVersion && typeof context.serverInfo.metadata.protocolVersion === 'string') {
+    if (
+      context.serverInfo?.metadata?.protocolVersion &&
+      typeof context.serverInfo.metadata.protocolVersion === "string"
+    ) {
       this.log(
         `Using protocol version from metadata: ${context.serverInfo.metadata.protocolVersion}`,
       );
@@ -139,7 +142,10 @@ export class MCPSpecComplianceAssessor extends BaseAssessor {
     }
 
     // Fall back to server version
-    if (context.serverInfo?.version && typeof context.serverInfo.version === 'string') {
+    if (
+      context.serverInfo?.version &&
+      typeof context.serverInfo.version === "string"
+    ) {
       this.log(
         `Using server version as protocol version: ${context.serverInfo.version}`,
       );
@@ -394,7 +400,9 @@ export class MCPSpecComplianceAssessor extends BaseAssessor {
   ): AnnotationSupportMetrics {
     // Check if server metadata indicates annotation support
     const annotationMetadata = context.serverInfo?.metadata?.annotations;
-    const annotations = isAnnotationMetadata(annotationMetadata) ? annotationMetadata : null;
+    const annotations = isAnnotationMetadata(annotationMetadata)
+      ? annotationMetadata
+      : null;
 
     const supportsAnnotations = annotations?.supported || false;
     const customAnnotations = annotations?.types || [];
@@ -416,7 +424,9 @@ export class MCPSpecComplianceAssessor extends BaseAssessor {
   ): StreamingSupportMetrics {
     // Check if server metadata indicates streaming support
     const streamingMetadata = context.serverInfo?.metadata?.streaming;
-    const streaming = isStreamingMetadata(streamingMetadata) ? streamingMetadata : null;
+    const streaming = isStreamingMetadata(streamingMetadata)
+      ? streamingMetadata
+      : null;
 
     const supportsStreaming = streaming?.supported || false;
     const protocol = streaming?.protocol;
@@ -424,9 +434,13 @@ export class MCPSpecComplianceAssessor extends BaseAssessor {
     return {
       supportsStreaming: supportsStreaming,
       streamingProtocol:
-        (protocol === "sse" || protocol === "websocket" || protocol === "http-streaming")
+        protocol === "sse" ||
+        protocol === "websocket" ||
+        protocol === "http-streaming"
           ? protocol
-          : (supportsStreaming ? "http-streaming" : undefined),
+          : supportsStreaming
+            ? "http-streaming"
+            : undefined,
     };
   }
 

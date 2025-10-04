@@ -9,7 +9,6 @@ interface CompletionState {
   loading: Record<string, boolean>;
 }
 
- 
 function debounce<T extends (...args: any[]) => PromiseLike<void>>(
   func: T,
   wait: number,

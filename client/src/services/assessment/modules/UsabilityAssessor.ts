@@ -49,15 +49,20 @@ export class UsabilityAssessor extends BaseAssessor {
   }
 
   private generateDetailedAnalysis(tools: Tool[]) {
-    const toolAnalysis = tools.map(tool => {
+    const toolAnalysis = tools.map((tool) => {
       const schema = this.getToolSchema(tool);
       const namingPattern = this.determineNamingPattern(tool.name);
       const hasDescription = !!tool.description;
-      const descriptionLength = typeof tool.description === 'string' ? tool.description.length : 0;
+      const descriptionLength =
+        typeof tool.description === "string" ? tool.description.length : 0;
 
       // Count parameters
-      const parameterCount = schema?.properties ? Object.keys(schema.properties).length : 0;
-      const hasRequiredParams = schema?.required ? (schema.required as any[]).length > 0 : false;
+      const parameterCount = schema?.properties
+        ? Object.keys(schema.properties).length
+        : 0;
+      const hasRequiredParams = schema?.required
+        ? (schema.required as any[]).length > 0
+        : false;
 
       // Assess schema quality
       const hasSchema = !!schema;
@@ -102,15 +107,30 @@ export class UsabilityAssessor extends BaseAssessor {
       naming: {
         patterns: Object.keys(namingPatterns),
         breakdown: namingPatterns,
-        dominant: Object.entries(namingPatterns).reduce((a, b) => (namingPatterns as any)[a[0]] > (namingPatterns as any)[b[0]] ? a : b)[0]
+        dominant: Object.entries(namingPatterns).reduce((a, b) =>
+          (namingPatterns as any)[a[0]] > (namingPatterns as any)[b[0]] ? a : b,
+        )[0],
       },
       descriptions: {
-        withDescriptions: tools.filter(t => typeof t.description === 'string' && t.description.length > 10).length,
-        withoutDescriptions: tools.filter(t => !t.description || typeof t.description !== 'string' || t.description.length <= 10).length,
-        averageLength: tools.reduce((sum, t) => sum + (typeof t.description === 'string' ? t.description.length : 0), 0) / tools.length,
+        withDescriptions: tools.filter(
+          (t) => typeof t.description === "string" && t.description.length > 10,
+        ).length,
+        withoutDescriptions: tools.filter(
+          (t) =>
+            !t.description ||
+            typeof t.description !== "string" ||
+            t.description.length <= 10,
+        ).length,
+        averageLength:
+          tools.reduce(
+            (sum, t) =>
+              sum +
+              (typeof t.description === "string" ? t.description.length : 0),
+            0,
+          ) / tools.length,
         tooShort: [],
         adequate: [],
-        detailed: []
+        detailed: [],
       },
       namingPatterns,
       parameterIssues,
@@ -131,8 +151,12 @@ export class UsabilityAssessor extends BaseAssessor {
     if (!schema) return "missing";
     if (!schema.properties) return "poor";
 
-    const hasDescriptions = Object.values(schema.properties).some((prop: any) => prop.description);
-    const hasTypes = Object.values(schema.properties).every((prop: any) => prop.type);
+    const hasDescriptions = Object.values(schema.properties).some(
+      (prop: any) => prop.description,
+    );
+    const hasTypes = Object.values(schema.properties).every(
+      (prop: any) => prop.type,
+    );
 
     if (hasDescriptions && hasTypes) return "excellent";
     if (hasTypes) return "good";
@@ -187,7 +211,13 @@ export class UsabilityAssessor extends BaseAssessor {
   }
 
   private analyzeNamingPatterns(tools: Tool[]) {
-    const patterns = { camelCase: 0, snake_case: 0, "kebab-case": 0, PascalCase: 0, mixed: 0 };
+    const patterns = {
+      camelCase: 0,
+      snake_case: 0,
+      "kebab-case": 0,
+      PascalCase: 0,
+      mixed: 0,
+    };
 
     for (const tool of tools) {
       const pattern = this.determineNamingPattern(tool.name);
@@ -212,12 +242,18 @@ export class UsabilityAssessor extends BaseAssessor {
         continue;
       }
 
-      for (const [paramName, paramDef] of Object.entries(schema.properties as Record<string, any>)) {
+      for (const [paramName, paramDef] of Object.entries(
+        schema.properties as Record<string, any>,
+      )) {
         if (!paramDef.description) {
-          issues.push(`${tool.name}: Parameter '${paramName}' lacks description`);
+          issues.push(
+            `${tool.name}: Parameter '${paramName}' lacks description`,
+          );
         }
         if (!paramDef.type) {
-          issues.push(`${tool.name}: Parameter '${paramName}' lacks type definition`);
+          issues.push(
+            `${tool.name}: Parameter '${paramName}' lacks type definition`,
+          );
         }
       }
     }
@@ -225,7 +261,9 @@ export class UsabilityAssessor extends BaseAssessor {
     return issues;
   }
 
-  private analyzeNamingConvention(tools: Tool[]): "consistent" | "inconsistent" {
+  private analyzeNamingConvention(
+    tools: Tool[],
+  ): "consistent" | "inconsistent" {
     if (tools.length === 0) return "consistent";
 
     const namingPatterns = {
@@ -262,7 +300,9 @@ export class UsabilityAssessor extends BaseAssessor {
     return "inconsistent";
   }
 
-  private analyzeParameterClarity(tools: Tool[]): "clear" | "unclear" | "mixed" {
+  private analyzeParameterClarity(
+    tools: Tool[],
+  ): "clear" | "unclear" | "mixed" {
     if (tools.length === 0) return "clear";
 
     let clearCount = 0;
@@ -424,7 +464,10 @@ export class UsabilityAssessor extends BaseAssessor {
     return "FAIL";
   }
 
-  private generateExplanation(metrics: UsabilityMetrics, tools: Tool[]): string {
+  private generateExplanation(
+    metrics: UsabilityMetrics,
+    tools: Tool[],
+  ): string {
     const parts: string[] = [];
 
     parts.push(`Analyzed ${tools.length} tools for usability.`);

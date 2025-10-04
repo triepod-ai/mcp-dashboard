@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ThemeContext, type Theme, type ThemeContextType } from "./theme-context";
+import {
+  ThemeContext,
+  type Theme,
+  type ThemeContextType,
+} from "./theme-context";
 
 // Export ThemeContext for other components to use
 export { ThemeContext, type Theme, type ThemeContextType };
@@ -34,7 +38,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return defaultTheme;
   });
 
-  const [effectiveTheme, setEffectiveTheme] = useState<"light" | "dark">("light");
+  const [effectiveTheme, setEffectiveTheme] = useState<"light" | "dark">(
+    "light",
+  );
 
   // Update effective theme based on current theme and system preference
   useEffect(() => {
@@ -42,7 +48,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       const root = window.document.documentElement;
 
       if (theme === "system") {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
           ? "dark"
           : "light";
         setEffectiveTheme(systemTheme);
@@ -81,8 +88,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   };
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };

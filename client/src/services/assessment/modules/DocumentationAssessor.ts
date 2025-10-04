@@ -17,7 +17,8 @@ export class DocumentationAssessor extends BaseAssessor {
     this.log("Starting documentation assessment");
 
     const readmeContent = context.readmeContent || "";
-    const metrics = this.analyzeDocumentation(readmeContent);
+    const tools = context.tools || [];
+    const metrics = this.analyzeDocumentation(readmeContent, tools);
 
     const status = this.determineDocumentationStatus(metrics);
     const explanation = this.generateExplanation(metrics);
@@ -31,28 +32,47 @@ export class DocumentationAssessor extends BaseAssessor {
     };
   }
 
-  private analyzeDocumentation(content: string): DocumentationMetrics {
+  private analyzeDocumentation(
+    content: string,
+    tools: any[],
+  ): DocumentationMetrics {
     const hasReadme = content.length > 0;
     const examples = this.extractCodeExamples(content);
     const hasInstallInstructions = this.checkInstallInstructions(content);
     const hasUsageGuide = this.checkUsageGuide(content);
     const hasAPIReference = this.checkAPIReference(content);
 
-    // Determine required vs actual examples
-    const requiredExamples = 3; // Minimum recommended
+    // Determine required vs actual examples (minimum recommended)
+    const requiredExamples = 3;
+
+    // Track tools that lack documentation
     const missingExamples: string[] = [];
 
-    if (examples.length < 1) missingExamples.push("Basic usage example");
-    if (!examples.some((e) => e.description?.includes("error"))) {
-      missingExamples.push("Error handling example");
+    // Count tools mentioned in README as documented
+    let documentedInReadmeCount = 0;
+
+    // Check each tool for documentation
+    for (const tool of tools) {
+      const hasDescription = tool.description && tool.description.trim().length > 0;
+      const isMentionedInReadme = content.includes(tool.name);
+
+      // Count tools mentioned in README
+      if (isMentionedInReadme) {
+        documentedInReadmeCount++;
+      }
+
+      // Tool is missing examples if it lacks BOTH description AND README mention
+      if (!hasDescription && !isMentionedInReadme) {
+        missingExamples.push(tool.name);
+      }
     }
-    if (!examples.some((e) => e.description?.includes("config"))) {
-      missingExamples.push("Configuration example");
-    }
+
+    // Total example count includes code examples and tools documented in README
+    const totalExampleCount = examples.length + documentedInReadmeCount;
 
     return {
       hasReadme,
-      exampleCount: examples.length,
+      exampleCount: totalExampleCount,
       requiredExamples,
       missingExamples,
       hasInstallInstructions,

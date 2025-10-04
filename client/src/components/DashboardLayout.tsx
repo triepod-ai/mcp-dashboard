@@ -15,7 +15,10 @@ import { ThemeToggle } from "./ThemeToggle";
 import ServerManagementPanel from "./ServerManagementPanel";
 import ToolExecutionInterface from "./ToolExecutionInterface";
 import AssessmentTabWrapper from "./AssessmentTabWrapper";
-import HistoryAndNotifications, { RequestHistoryItem, ServerNotification } from "./HistoryAndNotifications";
+import HistoryAndNotifications, {
+  RequestHistoryItem,
+  ServerNotification,
+} from "./HistoryAndNotifications";
 import { useDashboardSSE } from "@/hooks/useDashboardSSE";
 import type { CompatibilityCallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
@@ -25,62 +28,83 @@ export interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [serversWithTools, setServersWithTools] = useState<Array<{
-    id: string;
-    name: string;
-    status: "connecting" | "connected" | "disconnected" | "error";
-    tools: unknown[];
-  }>>([]);
+  const [serversWithTools, setServersWithTools] = useState<
+    Array<{
+      id: string;
+      name: string;
+      status: "connecting" | "connected" | "disconnected" | "error";
+      tools: unknown[];
+    }>
+  >([]);
 
   // History and Notifications state
-  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>([]);
-  const [serverNotifications, setServerNotifications] = useState<ServerNotification[]>([]);
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>(
+    [],
+  );
+  const [serverNotifications, setServerNotifications] = useState<
+    ServerNotification[]
+  >([]);
 
   // Dashboard API configuration
   const DEFAULT_API_URL = "http://localhost:6287/api/dashboard";
   const urlParams = new URLSearchParams(window.location.search);
-  const authToken = urlParams.get('token') ||
-    localStorage.getItem('mcp_dashboard_token') ||
-    '22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1';
+  const authToken =
+    urlParams.get("token") ||
+    localStorage.getItem("mcp_dashboard_token") ||
+    "22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1";
 
   // Use SSE hook for real-time server data
   const { status, serverEvents, clearServerEvents } = useDashboardSSE({
-    url: DEFAULT_API_URL.replace('/api/dashboard', ''),
+    url: DEFAULT_API_URL.replace("/api/dashboard", ""),
     authToken,
     autoReconnect: true,
   });
 
   // Convert server events to server notifications
   useEffect(() => {
-    const notifications: ServerNotification[] = serverEvents.map(event => ({
+    const notifications: ServerNotification[] = serverEvents.map((event) => ({
       method: event.type,
       params: event.data,
-      server: event.data?.serverId || event.data?.server || 'unknown',
-      timestamp: event.timestamp
+      server: event.data?.serverId || event.data?.server || "unknown",
+      timestamp: event.timestamp,
     }));
     setServerNotifications(notifications);
   }, [serverEvents]);
 
   // Fetch tools for connected servers
-  const fetchServerTools = useCallback(async (servers: { id: string; name: string; status: "connecting" | "connected" | "disconnected" | "error" }[]) => {
-    const serversWithToolsPromises = servers.map(async (server) => {
-      if (server.status !== "connected") {
-        return { ...server, tools: [] };
-      }
+  const fetchServerTools = useCallback(
+    async (
+      servers: {
+        id: string;
+        name: string;
+        status: "connecting" | "connected" | "disconnected" | "error";
+      }[],
+    ) => {
+      const serversWithToolsPromises = servers.map(async (server) => {
+        if (server.status !== "connected") {
+          return { ...server, tools: [] };
+        }
 
-      try {
-        const toolsResponse = await fetch(`${DEFAULT_API_URL}/servers/${server.id}/tools`);
-        const toolsData = await toolsResponse.json();
-        return { ...server, tools: toolsData.tools || [] };
-      } catch (error) {
-        console.error(`Failed to fetch tools for server ${server.id}:`, error);
-        return { ...server, tools: [] };
-      }
-    });
+        try {
+          const toolsResponse = await fetch(
+            `${DEFAULT_API_URL}/servers/${server.id}/tools`,
+          );
+          const toolsData = await toolsResponse.json();
+          return { ...server, tools: toolsData.tools || [] };
+        } catch (error) {
+          console.error(
+            `Failed to fetch tools for server ${server.id}:`,
+            error,
+          );
+          return { ...server, tools: [] };
+        }
+      });
 
-    const result = await Promise.all(serversWithToolsPromises);
-    setServersWithTools(result);
-  }, [DEFAULT_API_URL]);
+      const result = await Promise.all(serversWithToolsPromises);
+      setServersWithTools(result);
+    },
+    [DEFAULT_API_URL],
+  );
 
   // Update servers with tools when status changes
   useEffect(() => {
@@ -90,54 +114,62 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
   }, [status?.servers, fetchServerTools]);
 
   // Tool calling function for AssessmentInterface
-  const handleCallTool = useCallback(async (
-    serverId: string,
-    toolName: string,
-    params: Record<string, unknown>
-  ): Promise<CompatibilityCallToolResult> => {
-    const requestData = {
-      method: `tools/${toolName}`,
-      serverId,
-      params
-    };
+  const handleCallTool = useCallback(
+    async (
+      serverId: string,
+      toolName: string,
+      params: Record<string, unknown>,
+    ): Promise<CompatibilityCallToolResult> => {
+      const requestData = {
+        method: `tools/${toolName}`,
+        serverId,
+        params,
+      };
 
-    // Add to request history
-    const historyItem: RequestHistoryItem = {
-      request: JSON.stringify(requestData),
-      server: serverId,
-      timestamp: Date.now()
-    };
+      // Add to request history
+      const historyItem: RequestHistoryItem = {
+        request: JSON.stringify(requestData),
+        server: serverId,
+        timestamp: Date.now(),
+      };
 
-    try {
-      const response = await fetch(`${DEFAULT_API_URL}/servers/${serverId}/tools/${toolName}/call`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ params }),
-      });
+      try {
+        const response = await fetch(
+          `${DEFAULT_API_URL}/servers/${serverId}/tools/${toolName}/call`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ params }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error(`Tool call failed: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Tool call failed: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        // Update history with response
+        historyItem.response = JSON.stringify(result);
+        setRequestHistory((prev) => [...prev, historyItem]);
+
+        return result;
+      } catch (error) {
+        console.error("Tool call error:", error);
+
+        // Update history with error
+        historyItem.response = JSON.stringify({
+          error: (error as Error).message,
+        });
+        setRequestHistory((prev) => [...prev, historyItem]);
+
+        throw error;
       }
-
-      const result = await response.json();
-
-      // Update history with response
-      historyItem.response = JSON.stringify(result);
-      setRequestHistory(prev => [...prev, historyItem]);
-
-      return result;
-    } catch (error) {
-      console.error('Tool call error:', error);
-
-      // Update history with error
-      historyItem.response = JSON.stringify({ error: (error as Error).message });
-      setRequestHistory(prev => [...prev, historyItem]);
-
-      throw error;
-    }
-  }, [DEFAULT_API_URL]);
+    },
+    [DEFAULT_API_URL],
+  );
 
   // Clear handlers
   const clearHistory = useCallback(() => {
@@ -156,12 +188,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
       params: {
         message: "This is a test notification",
         timestamp: new Date().toISOString(),
-        source: "manual-test"
+        source: "manual-test",
       },
       server: "test-server",
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    setServerNotifications(prev => [...prev, testNotification]);
+    setServerNotifications((prev) => [...prev, testNotification]);
   }, []);
 
   const navigationItems = [
@@ -180,11 +212,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Test the Server Notifications panel in the bottom section:
             </p>
-            <Button
-              onClick={addTestNotification}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={addTestNotification} variant="outline" size="sm">
               Add Test Notification
             </Button>
           </div>
@@ -207,7 +235,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
       id: "assessment",
       label: "Assessment",
       icon: Shield,
-      component: <AssessmentTabWrapper servers={serversWithTools} onCallTool={handleCallTool} />,
+      component: (
+        <AssessmentTabWrapper
+          servers={serversWithTools}
+          onCallTool={handleCallTool}
+        />
+      ),
     },
     {
       id: "resources",
@@ -237,7 +270,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
             {sidebarOpen && (
               <div className="flex items-center space-x-2">
                 <Monitor className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-bold text-foreground">MCP Dashboard</h1>
+                <h1 className="text-xl font-bold text-foreground">
+                  MCP Dashboard
+                </h1>
               </div>
             )}
             <div className="flex items-center space-x-2">
@@ -267,7 +302,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
 
         {/* Navigation */}
         <div className="p-2 flex-1">
-          <TabsList className={`grid w-full ${sidebarOpen ? 'grid-cols-1' : 'grid-cols-1'} gap-2 bg-transparent`}>
+          <TabsList
+            className={`grid w-full ${sidebarOpen ? "grid-cols-1" : "grid-cols-1"} gap-2 bg-transparent`}
+          >
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -279,7 +316,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
                   }`}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
+                  {sidebarOpen && (
+                    <span className="text-sm font-medium">{item.label}</span>
+                  )}
                 </TabsTrigger>
               );
             })}
@@ -316,7 +355,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
         {/* Bottom Panel - History and Notifications */}
         <div
           className="border-t border-border bg-blue-500/20 flex-shrink-0"
-          style={{ minHeight: '250px', height: '250px' }}
+          style={{ minHeight: "250px", height: "250px" }}
         >
           <HistoryAndNotifications
             requestHistory={requestHistory}

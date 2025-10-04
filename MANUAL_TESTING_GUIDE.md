@@ -1,11 +1,13 @@
 # Manual Testing Guide for Session Stop Hook Timeline Functionality
 
 ## Overview
+
 This guide provides step-by-step instructions for manual testing of the enhanced session stop hook that automatically updates PROJECT_STATUS.md with session summaries.
 
 ## Prerequisites
 
 ### Setup Requirements
+
 ```bash
 # Verify hook is installed and executable
 ls -la /home/bryan/dashboard/.claude/hooks/stop.py
@@ -18,6 +20,7 @@ curl -f http://localhost:3000/health 2>/dev/null && echo "Observability server a
 ```
 
 ### Environment Configuration
+
 ```bash
 # Set environment variables for testing
 export ENGINEER_NAME="QA Tester"
@@ -32,7 +35,9 @@ export TTS_PROVIDER="pyttsx3"  # for offline testing
 **Objective**: Verify basic timeline functionality with simple file operations.
 
 **Steps**:
+
 1. Navigate to a test project directory:
+
    ```bash
    mkdir -p /tmp/manual_test_simple
    cd /tmp/manual_test_simple
@@ -50,6 +55,7 @@ export TTS_PROVIDER="pyttsx3"  # for offline testing
    - Summary mentions file editing and command execution
 
 **Validation**:
+
 ```bash
 # Check if PROJECT_STATUS.md was created
 ls -la PROJECT_STATUS.md
@@ -67,7 +73,9 @@ grep "Session Summary" PROJECT_STATUS.md
 **Objective**: Test comprehensive activity tracking with multiple tools and file types.
 
 **Steps**:
+
 1. Set up test environment:
+
    ```bash
    mkdir -p /tmp/manual_test_complex
    cd /tmp/manual_test_complex
@@ -86,6 +94,7 @@ grep "Session Summary" PROJECT_STATUS.md
    - Appropriate summary category (e.g., "updating 3 files")
 
 **Validation**:
+
 ```bash
 # Check summary comprehensiveness
 cat PROJECT_STATUS.md | grep -E "(Tools|Modified files|Commands)"
@@ -99,7 +108,9 @@ wc -l PROJECT_STATUS.md  # Should have substantial content
 **Objective**: Test detection and categorization of documentation work.
 
 **Steps**:
+
 1. Create documentation test environment:
+
    ```bash
    mkdir -p /tmp/manual_test_docs
    cd /tmp/manual_test_docs
@@ -117,6 +128,7 @@ wc -l PROJECT_STATUS.md  # Should have substantial content
    - File count reflects multiple .md files
 
 **Validation**:
+
 ```bash
 # Look for documentation-specific summary
 grep -i "doc" PROJECT_STATUS.md
@@ -128,7 +140,9 @@ grep -E "\.[0-9]+ docs|documentation" PROJECT_STATUS.md
 **Objective**: Test special handling of hook development work.
 
 **Steps**:
+
 1. Set up hooks development context:
+
    ```bash
    mkdir -p /tmp/manual_test_hooks/.claude/hooks
    cd /tmp/manual_test_hooks
@@ -145,6 +159,7 @@ grep -E "\.[0-9]+ docs|documentation" PROJECT_STATUS.md
    - Uses phrases like "updating hooks" or "updating X hooks"
 
 **Validation**:
+
 ```bash
 # Check for hook-specific content
 grep -i "hook" PROJECT_STATUS.md
@@ -156,6 +171,7 @@ grep "hooks/" PROJECT_STATUS.md
 **Objective**: Verify graceful error handling and recovery.
 
 #### 5a. Read-Only Directory Test
+
 ```bash
 # Create read-only directory
 mkdir -p /tmp/readonly_test
@@ -169,6 +185,7 @@ cd /tmp/readonly_test
 **Expected**: No crash, error logged to stderr, TTS still works
 
 #### 5b. Invalid Session Log Test
+
 ```bash
 # Simulate corrupted session logs (advanced testing)
 # This requires manipulating session log files during development
@@ -181,7 +198,9 @@ cd /tmp/readonly_test
 **Objective**: Verify minimal performance impact on session termination.
 
 **Steps**:
+
 1. Set up performance test:
+
    ```bash
    mkdir -p /tmp/performance_test
    cd /tmp/performance_test
@@ -203,6 +222,7 @@ cd /tmp/readonly_test
 ### Scenario 7: Integration Testing
 
 #### 7a. With Observability Server
+
 ```bash
 # Start observability server if available
 # Perform session activities
@@ -210,6 +230,7 @@ cd /tmp/readonly_test
 ```
 
 #### 7b. Without Observability Server
+
 ```bash
 # Stop observability server
 # Perform session activities
@@ -217,6 +238,7 @@ cd /tmp/readonly_test
 ```
 
 #### 7c. TTS Configuration Testing
+
 ```bash
 # Test different TTS settings
 export TTS_ENABLED="false"  # Silent mode
@@ -227,7 +249,9 @@ export TTS_PROVIDER="elevenlabs"  # Premium provider
 ## Long-Running Tests
 
 ### 24-Hour Stability Test
+
 1. Set up monitoring script:
+
    ```bash
    #!/bin/bash
    # monitor_timeline.sh
@@ -247,7 +271,9 @@ export TTS_PROVIDER="elevenlabs"  # Premium provider
    - Error accumulation
 
 ### Stress Testing
+
 1. Rapid session termination:
+
    ```bash
    # Simulate multiple rapid session ends
    for i in {1..50}; do
@@ -266,6 +292,7 @@ export TTS_PROVIDER="elevenlabs"  # Premium provider
 ## Validation Criteria
 
 ### Success Criteria
+
 - [ ] PROJECT_STATUS.md created in all scenarios
 - [ ] Timeline entries have proper format and timestamps
 - [ ] Session summaries are accurate and meaningful
@@ -275,6 +302,7 @@ export TTS_PROVIDER="elevenlabs"  # Premium provider
 - [ ] Error conditions handled gracefully
 
 ### Failure Criteria (Any of these indicates issues)
+
 - [ ] PROJECT_STATUS.md not created when expected
 - [ ] Corrupted or malformed timeline entries
 - [ ] Inaccurate or meaningless summaries
@@ -287,6 +315,7 @@ export TTS_PROVIDER="elevenlabs"  # Premium provider
 ### Common Issues and Solutions
 
 #### PROJECT_STATUS.md Not Created
+
 ```bash
 # Check directory permissions
 ls -ld .
@@ -296,6 +325,7 @@ ls -la ~/.claude/hooks/stop.py
 ```
 
 #### Inaccurate Summaries
+
 ```bash
 # Check session log availability
 ls -la ~/.claude/sessions/*/
@@ -304,6 +334,7 @@ cat ~/.claude/sessions/latest/pre_tool_use.json
 ```
 
 #### Performance Issues
+
 ```bash
 # Monitor resource usage
 top -p $(pgrep -f stop.py)
@@ -312,6 +343,7 @@ du -sh ~/.claude/sessions/*
 ```
 
 #### TTS Not Working
+
 ```bash
 # Test TTS directly
 speak "Test message"
@@ -324,64 +356,75 @@ echo $TTS_ENABLED $TTS_PROVIDER
 ```markdown
 # Manual Test Report - Session Stop Hook Timeline
 
-**Test Date**: ___________
-**Tester**: ___________
-**Environment**: ___________
+**Test Date**: \***\*\_\_\_\*\***
+**Tester**: \***\*\_\_\_\*\***
+**Environment**: \***\*\_\_\_\*\***
 
 ## Test Results Summary
-- Total Scenarios Tested: ___/7
-- Scenarios Passed: ___
-- Scenarios Failed: ___
-- Overall Success Rate: ___%
+
+- Total Scenarios Tested: \_\_\_/7
+- Scenarios Passed: \_\_\_
+- Scenarios Failed: \_\_\_
+- Overall Success Rate: \_\_\_%
 
 ## Detailed Results
 
 ### Scenario 1: Simple Development Session
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 2: Complex Multi-Tool Session
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 3: Documentation-Heavy Session
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 4: Hook Development Session
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 5: Error Conditions Testing
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 6: Performance Impact Testing
+
 - [x] PASS / [ ] FAIL
-- Performance Measurement: ___ms
-- Notes: ________________________
+- Performance Measurement: \_\_\_ms
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Scenario 7: Integration Testing
+
 - [x] PASS / [ ] FAIL
-- Notes: ________________________
+- Notes: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ## Issues Discovered
-1. ________________________________
-2. ________________________________
-3. ________________________________
+
+1. ***
+2. ***
+3. ***
 
 ## Recommendations
-1. ________________________________
-2. ________________________________
-3. ________________________________
+
+1. ***
+2. ***
+3. ***
 
 ## Overall Assessment
+
 [ ] READY FOR PRODUCTION
 [ ] NEEDS MINOR FIXES
 [ ] NEEDS MAJOR REVISION
 [ ] NOT READY
 
-**Signature**: ___________
+**Signature**: \***\*\_\_\_\*\***
 ```
 
 ## Conclusion

@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import AssessmentTab from "./AssessmentTab";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import type { CompatibilityCallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
@@ -17,7 +23,7 @@ interface AssessmentTabWrapperProps {
   onCallTool?: (
     serverId: string,
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ) => Promise<CompatibilityCallToolResult>;
 }
 
@@ -28,7 +34,9 @@ const AssessmentTabWrapper: React.FC<AssessmentTabWrapperProps> = ({
   const [selectedServerId, setSelectedServerId] = useState<string>("");
 
   const connectedServers = servers.filter((s) => s.status === "connected");
-  const selectedServer = connectedServers.find((s) => s.id === selectedServerId);
+  const selectedServer = connectedServers.find(
+    (s) => s.id === selectedServerId,
+  );
 
   // Auto-select first connected server
   useEffect(() => {
@@ -40,22 +48,35 @@ const AssessmentTabWrapper: React.FC<AssessmentTabWrapperProps> = ({
   // Adapt onCallTool to match AssessmentTab's callTool interface
   const callTool = async (
     toolName: string,
-    params: Record<string, unknown>
+    params: Record<string, unknown>,
   ): Promise<CompatibilityCallToolResult> => {
-    console.log(`🔧 AssessmentTabWrapper: callTool called for ${toolName} with params:`, params);
+    console.log(
+      `🔧 AssessmentTabWrapper: callTool called for ${toolName} with params:`,
+      params,
+    );
 
     if (!selectedServerId || !onCallTool) {
-      console.error("❌ AssessmentTabWrapper: No server selected or onCallTool not provided");
+      console.error(
+        "❌ AssessmentTabWrapper: No server selected or onCallTool not provided",
+      );
       throw new Error("No server selected or onCallTool not provided");
     }
 
-    console.log(`📡 AssessmentTabWrapper: Calling onCallTool for server ${selectedServerId}`);
+    console.log(
+      `📡 AssessmentTabWrapper: Calling onCallTool for server ${selectedServerId}`,
+    );
     try {
       const result = await onCallTool(selectedServerId, toolName, params);
-      console.log(`✅ AssessmentTabWrapper: Tool call successful for ${toolName}:`, result);
+      console.log(
+        `✅ AssessmentTabWrapper: Tool call successful for ${toolName}:`,
+        result,
+      );
       return result;
     } catch (error) {
-      console.error(`❌ AssessmentTabWrapper: Tool call failed for ${toolName}:`, error);
+      console.error(
+        `❌ AssessmentTabWrapper: Tool call failed for ${toolName}:`,
+        error,
+      );
 
       // Convert error to CompatibilityCallToolResult format for consistent error handling
       // This matches the pattern used in App.tsx callTool function
@@ -99,9 +120,7 @@ const AssessmentTabWrapper: React.FC<AssessmentTabWrapperProps> = ({
               <Shield className="h-5 w-5" />
               MCP Server Assessment
             </CardTitle>
-            <CardDescription>
-              Select a server to assess.
-            </CardDescription>
+            <CardDescription>Select a server to assess.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">

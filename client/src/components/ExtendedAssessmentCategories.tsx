@@ -208,11 +208,9 @@ export const MCPSpecComplianceDisplay: React.FC<MCPSpecComplianceProps> = ({
   );
 };
 
-
 // Dynamic Security Display removed - not essential for MCP Directory approval
 // This category provided supplemental security testing but was determined
 // to be less critical than Supply Chain Security, MCP Spec Compliance, and Privacy Compliance
-
 
 // Human-in-the-Loop Display removed - not essential for MCP Directory approval
 // This category provided workflow enhancement features but was determined

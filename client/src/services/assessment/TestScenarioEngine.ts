@@ -221,11 +221,17 @@ export class TestScenarioEngine {
 
     switch (schema.type) {
       case "string":
-        const enumValues = safeGetProperty(schema, "enum", (v): v is string[] => Array.isArray(v));
+        const enumValues = safeGetProperty(schema, "enum", (v): v is string[] =>
+          Array.isArray(v),
+        );
         return enumValues ? enumValues[0] : "test";
       case "number":
       case "integer":
-        const minimum = safeGetProperty(schema, "minimum", (v): v is number => typeof v === "number");
+        const minimum = safeGetProperty(
+          schema,
+          "minimum",
+          (v): v is number => typeof v === "number",
+        );
         return minimum ?? 1;
       case "boolean":
         return true;
@@ -260,17 +266,25 @@ export class TestScenarioEngine {
     let scenarios: TestScenario[] = [];
     try {
       scenarios = TestDataGenerator.generateTestScenarios(tool);
-      console.log(`Generated ${scenarios.length} scenarios for tool ${tool.name}:`, scenarios.map(s => s.name));
+      console.log(
+        `Generated ${scenarios.length} scenarios for tool ${tool.name}:`,
+        scenarios.map((s) => s.name),
+      );
     } catch (error) {
-      console.error(`Failed to generate scenarios for tool ${tool.name}:`, error);
+      console.error(
+        `Failed to generate scenarios for tool ${tool.name}:`,
+        error,
+      );
       // Create a minimal fallback scenario if generation fails
-      scenarios = [{
-        name: "Basic Connectivity Test",
-        description: "Minimal test to check if tool responds",
-        params: {},
-        expectedBehavior: "Should return any response",
-        category: "happy_path",
-      }];
+      scenarios = [
+        {
+          name: "Basic Connectivity Test",
+          description: "Minimal test to check if tool responds",
+          params: {},
+          expectedBehavior: "Should return any response",
+          category: "happy_path",
+        },
+      ];
     }
 
     // Initialize result
@@ -299,7 +313,9 @@ export class TestScenarioEngine {
 
     // Execute each scenario
     for (const scenario of scenarios) {
-      console.log(`Executing scenario '${scenario.name}' for tool ${tool.name}`);
+      console.log(
+        `Executing scenario '${scenario.name}' for tool ${tool.name}`,
+      );
       try {
         const scenarioResult = await this.executeScenario(
           tool,
@@ -310,7 +326,7 @@ export class TestScenarioEngine {
         console.log(`Scenario '${scenario.name}' completed:`, {
           executed: scenarioResult.executed,
           isValid: scenarioResult.validation.isValid,
-          classification: scenarioResult.validation.classification
+          classification: scenarioResult.validation.classification,
         });
       } catch (error) {
         console.error(`Failed to execute scenario '${scenario.name}':`, error);
@@ -331,7 +347,8 @@ export class TestScenarioEngine {
         });
       }
 
-      const lastResult = result.scenarioResults[result.scenarioResults.length - 1];
+      const lastResult =
+        result.scenarioResults[result.scenarioResults.length - 1];
       if (lastResult?.executed) {
         result.scenariosExecuted++;
 
@@ -469,7 +486,9 @@ export class TestScenarioEngine {
 
     // If any scenarios executed successfully (even if they failed validation),
     // the tool has basic connectivity
-    const anyExecuted = result.scenarioResults.some(sr => sr.executed && !sr.error);
+    const anyExecuted = result.scenarioResults.some(
+      (sr) => sr.executed && !sr.error,
+    );
     if (!anyExecuted) {
       return "broken"; // Only mark as broken if nothing could execute
     }

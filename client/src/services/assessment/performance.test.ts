@@ -1,15 +1,24 @@
 import { AssessmentOrchestrator } from "./AssessmentOrchestrator";
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { DEFAULT_ASSESSMENT_CONFIG, MCPDirectoryAssessment } from "@/lib/assessmentTypes";
+import {
+  DEFAULT_ASSESSMENT_CONFIG,
+  MCPDirectoryAssessment,
+} from "@/lib/assessmentTypes";
 import type { AssessmentConfiguration } from "@/types/assessment.types";
 
 // Mock utility functions
-const createMockCallToolResponse = (content: string, isError: boolean = false) => ({
+const createMockCallToolResponse = (
+  content: string,
+  isError: boolean = false,
+) => ({
   content: [{ type: "text", text: content }],
   isError,
 });
 
-const createMockTool = (name: string, description: string = "Mock tool"): Tool => ({
+const createMockTool = (
+  name: string,
+  description: string = "Mock tool",
+): Tool => ({
   name,
   description,
   inputSchema: {
@@ -321,7 +330,9 @@ describe("Assessment Performance Benchmarks", () => {
       }
 
       // Act
-      const results = await Promise.all(assessmentPromises) as MCPDirectoryAssessment[];
+      const results = (await Promise.all(
+        assessmentPromises,
+      )) as MCPDirectoryAssessment[];
       const endTime = performance.now();
       const totalExecutionTime = endTime - startTime;
 
@@ -356,7 +367,10 @@ describe("Assessment Performance Benchmarks", () => {
       const largeToolSet: Tool[] = [];
       for (let i = 0; i < 100; i++) {
         largeToolSet.push(
-          createMockTool(`memory-tool-${i}`, `Tool ${i} for memory testing with longer description to increase memory usage`),
+          createMockTool(
+            `memory-tool-${i}`,
+            `Tool ${i} for memory testing with longer description to increase memory usage`,
+          ),
         );
       }
 
@@ -538,58 +552,54 @@ describe("Assessment Performance Benchmarks", () => {
       // Create many tools with complex schemas
       const stressTools: Tool[] = [];
       for (let i = 0; i < 50; i++) {
-        stressTools.push(
-          {
-            name: `stress-tool-${i}`,
-            description: `Stress testing tool ${i} with complex functionality`,
-            inputSchema: {
-              type: "object",
-              properties: {
-                param1: { type: "string", enum: ["a", "b", "c"] },
-                param2: { type: "number", minimum: 0, maximum: 100 },
-                param3: { type: "array", items: { type: "string" } },
-                param4: { type: "object", additionalProperties: true },
-              },
+        stressTools.push({
+          name: `stress-tool-${i}`,
+          description: `Stress testing tool ${i} with complex functionality`,
+          inputSchema: {
+            type: "object",
+            properties: {
+              param1: { type: "string", enum: ["a", "b", "c"] },
+              param2: { type: "number", minimum: 0, maximum: 100 },
+              param3: { type: "array", items: { type: "string" } },
+              param4: { type: "object", additionalProperties: true },
             },
-          } as Tool,
-        );
+          },
+        } as Tool);
       }
 
-      const stressCallTool = jest
-        .fn()
-        .mockImplementation(() => {
-          // Simulate varying load conditions
-          const complexity = Math.random();
-          let delay: number;
+      const stressCallTool = jest.fn().mockImplementation(() => {
+        // Simulate varying load conditions
+        const complexity = Math.random();
+        let delay: number;
 
-          if (complexity < 0.1) {
-            // 10% very slow responses (simulating external API calls)
-            delay = 200 + Math.random() * 300;
-          } else if (complexity < 0.3) {
-            // 20% medium responses
-            delay = 50 + Math.random() * 100;
-          } else {
-            // 70% fast responses
-            delay = 5 + Math.random() * 20;
-          }
+        if (complexity < 0.1) {
+          // 10% very slow responses (simulating external API calls)
+          delay = 200 + Math.random() * 300;
+        } else if (complexity < 0.3) {
+          // 20% medium responses
+          delay = 50 + Math.random() * 100;
+        } else {
+          // 70% fast responses
+          delay = 5 + Math.random() * 20;
+        }
 
-          return new Promise((resolve, reject) => {
-            setTimeout(() => {
-              // Occasionally fail to simulate real-world conditions
-              if (Math.random() < 0.05) {
-                // 5% failure rate
-                reject(new Error(`Stress-induced failure in ${name}`));
-              } else {
-                resolve(
-                  createMockCallToolResponse(
-                    `Stress response from ${name}`,
-                    false,
-                  ),
-                );
-              }
-            }, delay);
-          });
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            // Occasionally fail to simulate real-world conditions
+            if (Math.random() < 0.05) {
+              // 5% failure rate
+              reject(new Error(`Stress-induced failure in ${name}`));
+            } else {
+              resolve(
+                createMockCallToolResponse(
+                  `Stress response from ${name}`,
+                  false,
+                ),
+              );
+            }
+          }, delay);
         });
+      });
 
       const startTime = performance.now();
       const initialMemory = process.memoryUsage();

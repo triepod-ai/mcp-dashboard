@@ -11,7 +11,7 @@ import {
   Loader2,
   Monitor,
   Wifi,
-  WifiOff
+  WifiOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -88,13 +85,14 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
 }) => {
   // Get auth token from URL params or environment
   const urlParams = new URLSearchParams(window.location.search);
-  const authToken = urlParams.get('token') ||
-    localStorage.getItem('mcp_dashboard_token') ||
-    '22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1'; // fallback to current token
+  const authToken =
+    urlParams.get("token") ||
+    localStorage.getItem("mcp_dashboard_token") ||
+    "22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1"; // fallback to current token
 
   // Use SSE hook for real-time updates
   const { status, connectionState, reconnect } = useDashboardSSE({
-    url: dashboardApiUrl.replace('/api/dashboard', ''),
+    url: dashboardApiUrl.replace("/api/dashboard", ""),
     authToken,
     autoReconnect: true,
   });
@@ -108,9 +106,15 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
     if (status) {
       console.log("🐛 [ServerManagementPanel] status.servers:", status.servers);
       console.log("🐛 [ServerManagementPanel] status.servers:", status.servers);
-      console.log("🐛 [ServerManagementPanel] length check:", status?.servers && status.servers.length > 0);
+      console.log(
+        "🐛 [ServerManagementPanel] length check:",
+        status?.servers && status.servers.length > 0,
+      );
     }
-    console.log("🐛 [ServerManagementPanel] Connection state:", connectionState);
+    console.log(
+      "🐛 [ServerManagementPanel] Connection state:",
+      connectionState,
+    );
   }, [status, connectionState]);
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
 
@@ -136,9 +140,12 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
   const connectServer = async (serverId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${dashboardApiUrl}/servers/${serverId}/connect`, {
-        method: "POST",
-      });
+      const response = await fetch(
+        `${dashboardApiUrl}/servers/${serverId}/connect`,
+        {
+          method: "POST",
+        },
+      );
       if (!response.ok) {
         throw new Error(`Failed to connect server: ${response.statusText}`);
       }
@@ -154,15 +161,20 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
   const disconnectServer = async (serverId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${dashboardApiUrl}/servers/${serverId}/disconnect`, {
-        method: "POST",
-      });
+      const response = await fetch(
+        `${dashboardApiUrl}/servers/${serverId}/disconnect`,
+        {
+          method: "POST",
+        },
+      );
       if (!response.ok) {
         throw new Error(`Failed to disconnect server: ${response.statusText}`);
       }
       // Status will be updated automatically via SSE
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to disconnect server");
+      setError(
+        err instanceof Error ? err.message : "Failed to disconnect server",
+      );
     } finally {
       setLoading(false);
     }
@@ -173,11 +185,14 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
     setLoading(true);
     try {
       // Parse args string to array
-      const args = newServer.args && Array.isArray(newServer.args)
-        ? newServer.args
-        : typeof newServer.args === "string"
-          ? (newServer.args as string).split(" ").filter((arg: string) => arg.trim())
-          : [];
+      const args =
+        newServer.args && Array.isArray(newServer.args)
+          ? newServer.args
+          : typeof newServer.args === "string"
+            ? (newServer.args as string)
+                .split(" ")
+                .filter((arg: string) => arg.trim())
+            : [];
 
       const serverConfig = {
         ...newServer,
@@ -254,7 +269,10 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
       connected: "default",
       connecting: "secondary",
       error: "destructive",
@@ -301,7 +319,10 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                 <span className="text-xs">Connecting...</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-1 text-red-600 cursor-pointer" onClick={reconnect}>
+              <div
+                className="flex items-center space-x-1 text-red-600 cursor-pointer"
+                onClick={reconnect}
+              >
                 <WifiOff className="h-4 w-4" />
                 <span className="text-xs">Offline</span>
               </div>
@@ -311,8 +332,13 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
           {status && (
             <div className="text-sm text-gray-600 space-x-4">
               <span>Uptime: {formatUptime(status.uptime)}</span>
-              <span>Memory: {status.memory ? formatMemory(status.memory.heapUsed) : 'N/A'}</span>
-              <span>Servers: {status.connectedServers}/{status.totalServers}</span>
+              <span>
+                Memory:{" "}
+                {status.memory ? formatMemory(status.memory.heapUsed) : "N/A"}
+              </span>
+              <span>
+                Servers: {status.connectedServers}/{status.totalServers}
+              </span>
             </div>
           )}
 
@@ -337,7 +363,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                   <Input
                     id="name"
                     value={newServer.name}
-                    onChange={(e) => setNewServer({ ...newServer, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewServer({ ...newServer, name: e.target.value })
+                    }
                     placeholder="My MCP Server"
                   />
                 </div>
@@ -346,9 +374,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                   <Label htmlFor="transport">Transport</Label>
                   <Select
                     value={newServer.transport}
-                    onValueChange={(value: "stdio" | "sse" | "streamable-http") =>
-                      setNewServer({ ...newServer, transport: value })
-                    }
+                    onValueChange={(
+                      value: "stdio" | "sse" | "streamable-http",
+                    ) => setNewServer({ ...newServer, transport: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -356,7 +384,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                     <SelectContent>
                       <SelectItem value="stdio">STDIO</SelectItem>
                       <SelectItem value="sse">Server-Sent Events</SelectItem>
-                      <SelectItem value="streamable-http">Streamable HTTP</SelectItem>
+                      <SelectItem value="streamable-http">
+                        Streamable HTTP
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -368,7 +398,12 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                       <Input
                         id="command"
                         value={newServer.command}
-                        onChange={(e) => setNewServer({ ...newServer, command: e.target.value })}
+                        onChange={(e) =>
+                          setNewServer({
+                            ...newServer,
+                            command: e.target.value,
+                          })
+                        }
                         placeholder="node server.js"
                       />
                     </div>
@@ -377,24 +412,38 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                       <Label htmlFor="args">Arguments (space separated)</Label>
                       <Input
                         id="args"
-                        value={Array.isArray(newServer.args) ? newServer.args.join(" ") : newServer.args}
-                        onChange={(e) => setNewServer({
-                          ...newServer,
-                          args: e.target.value.split(" ").filter(arg => arg.trim())
-                        })}
+                        value={
+                          Array.isArray(newServer.args)
+                            ? newServer.args.join(" ")
+                            : newServer.args
+                        }
+                        onChange={(e) =>
+                          setNewServer({
+                            ...newServer,
+                            args: e.target.value
+                              .split(" ")
+                              .filter((arg) => arg.trim()),
+                          })
+                        }
                         placeholder="--port 3000 --env production"
                       />
                     </div>
                   </>
                 )}
 
-                {(newServer.transport === "sse" || newServer.transport === "streamable-http") && (
+                {(newServer.transport === "sse" ||
+                  newServer.transport === "streamable-http") && (
                   <div>
                     <Label htmlFor="serverUrl">Server URL</Label>
                     <Input
                       id="serverUrl"
                       value={newServer.serverUrl || ""}
-                      onChange={(e) => setNewServer({ ...newServer, serverUrl: e.target.value })}
+                      onChange={(e) =>
+                        setNewServer({
+                          ...newServer,
+                          serverUrl: e.target.value,
+                        })
+                      }
                       placeholder="http://localhost:3000/mcp"
                     />
                   </div>
@@ -403,7 +452,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={newServer.enabled}
-                    onCheckedChange={(checked) => setNewServer({ ...newServer, enabled: checked })}
+                    onCheckedChange={(checked) =>
+                      setNewServer({ ...newServer, enabled: checked })
+                    }
                   />
                   <Label>Auto-connect</Label>
                 </div>
@@ -419,7 +470,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                     onClick={addServer}
                     disabled={loading || !newServer.name}
                   >
-                    {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {loading && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
                     Add Server
                   </Button>
                 </div>
@@ -451,7 +504,9 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
             </div>
           </CardContent>
         </Card>
-      ) : status?.servers && Array.isArray(status.servers) && status.servers.length > 0 ? (
+      ) : status?.servers &&
+        Array.isArray(status.servers) &&
+        status.servers.length > 0 ? (
         <div className="grid gap-4">
           {status.servers.map((server) => (
             <Card key={server.id}>
@@ -504,10 +559,15 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                 {/* Additional server info */}
                 <div className="mt-3 pt-3 border-t text-sm text-gray-600 space-y-1">
                   {server.lastConnected && (
-                    <div>Last connected: {new Date(server.lastConnected).toLocaleString()}</div>
+                    <div>
+                      Last connected:{" "}
+                      {new Date(server.lastConnected).toLocaleString()}
+                    </div>
                   )}
                   {server.lastError && (
-                    <div className="text-red-600">Error: {server.lastError}</div>
+                    <div className="text-red-600">
+                      Error: {server.lastError}
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -527,8 +587,12 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                 Connection State: {connectionState.status}
                 {connectionState.error && `Error: ${connectionState.error}`}
                 Status Object: {JSON.stringify(status, null, 2)}
-                Servers Check: {status?.servers ? 'has servers object' : 'no servers object'}
-                Servers Array: {status?.servers ? `array length ${status.servers.length}` : 'no servers array'}
+                Servers Check:{" "}
+                {status?.servers ? "has servers object" : "no servers object"}
+                Servers Array:{" "}
+                {status?.servers
+                  ? `array length ${status.servers.length}`
+                  : "no servers array"}
               </pre>
             </details>
             <Button onClick={() => setIsAddServerOpen(true)}>

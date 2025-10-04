@@ -74,7 +74,9 @@ export function isJSONSchema(value: unknown): value is JSONSchema {
 /**
  * Type guard to check if a value is a valid JSON Schema property
  */
-export function isJSONSchemaProperty(value: unknown): value is JSONSchemaProperty {
+export function isJSONSchemaProperty(
+  value: unknown,
+): value is JSONSchemaProperty {
   if (!value || typeof value !== "object") {
     return false;
   }
@@ -129,10 +131,14 @@ export function extractErrorInfo(response: unknown): ErrorInfo {
   if (response.isError === true) {
     return {
       isError: true,
-      message: typeof response.error === "string" ? response.error : "Unknown error",
-      code: typeof response.error === "object" && response.error && "code" in response.error
-        ? response.error.code as string | number
-        : undefined,
+      message:
+        typeof response.error === "string" ? response.error : "Unknown error",
+      code:
+        typeof response.error === "object" &&
+        response.error &&
+        "code" in response.error
+          ? (response.error.code as string | number)
+          : undefined,
     };
   }
 
@@ -141,7 +147,8 @@ export function extractErrorInfo(response: unknown): ErrorInfo {
     const error = response.error as Record<string, unknown>;
     return {
       isError: true,
-      message: typeof error.message === "string" ? error.message : "Unknown error",
+      message:
+        typeof error.message === "string" ? error.message : "Unknown error",
       code: error.code as string | number,
     };
   }
@@ -149,10 +156,16 @@ export function extractErrorInfo(response: unknown): ErrorInfo {
   // Check content array for error indicators
   if (Array.isArray(response.content)) {
     for (const content of response.content) {
-      if (content && typeof content === "object" && "type" in content && content.type === "error") {
+      if (
+        content &&
+        typeof content === "object" &&
+        "type" in content &&
+        content.type === "error"
+      ) {
         return {
           isError: true,
-          message: typeof content.text === "string" ? content.text : "Content error",
+          message:
+            typeof content.text === "string" ? content.text : "Content error",
         };
       }
     }
@@ -185,8 +198,12 @@ export function isErrorResponse(response: unknown): boolean {
 
   // Check content for error indicators
   if (Array.isArray(response.content)) {
-    return response.content.some(content =>
-      content && typeof content === "object" && "type" in content && content.type === "error"
+    return response.content.some(
+      (content) =>
+        content &&
+        typeof content === "object" &&
+        "type" in content &&
+        content.type === "error",
     );
   }
 
@@ -250,7 +267,7 @@ export function validateTool(value: unknown): ToolValidationResult {
 export function safeGetProperty<T>(
   obj: unknown,
   property: string,
-  validator: (value: unknown) => value is T
+  validator: (value: unknown) => value is T,
 ): T | undefined {
   if (!obj || typeof obj !== "object") {
     return undefined;

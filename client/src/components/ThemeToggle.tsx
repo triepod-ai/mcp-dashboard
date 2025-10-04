@@ -33,7 +33,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       case "system":
         return <Monitor className="h-4 w-4" />;
       default:
-        return effectiveTheme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+        return effectiveTheme === "dark" ? (
+          <Moon className="h-4 w-4" />
+        ) : (
+          <Sun className="h-4 w-4" />
+        );
     }
   };
 
@@ -79,7 +83,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             <Sun className="h-4 w-4" />
             <span>Light</span>
             {theme === "light" && (
-              <span className="ml-auto text-xs text-muted-foreground">Current</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                Current
+              </span>
             )}
           </Button>
           <Button
@@ -91,7 +97,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             <Moon className="h-4 w-4" />
             <span>Dark</span>
             {theme === "dark" && (
-              <span className="ml-auto text-xs text-muted-foreground">Current</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                Current
+              </span>
             )}
           </Button>
           <Button
@@ -103,7 +111,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             <Monitor className="h-4 w-4" />
             <span>System</span>
             {theme === "system" && (
-              <span className="ml-auto text-xs text-muted-foreground">Current</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                Current
+              </span>
             )}
           </Button>
         </div>

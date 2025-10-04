@@ -131,7 +131,9 @@ h1 {
   }
   body {
     @apply bg-background text-foreground;
-    transition: color 0.3s ease, background-color 0.3s ease;
+    transition:
+      color 0.3s ease,
+      background-color 0.3s ease;
   }
 
   /* Smooth transitions for theme switching */

@@ -4,7 +4,13 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -29,11 +35,17 @@ interface MockServerPanelProps {
   onServersChanged?: () => void;
 }
 
-const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) => {
+const MockServerPanel: React.FC<MockServerPanelProps> = ({
+  onServersChanged,
+}) => {
   const [mockEnabled, setMockEnabled] = useState(isMockModeEnabled());
-  const [mockServers, setMockServers] = useState<ReturnType<typeof mockServerManager.getAllServers>>([]);
+  const [mockServers, setMockServers] = useState<
+    ReturnType<typeof mockServerManager.getAllServers>
+  >([]);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
-  const [serverStats, setServerStats] = useState<Record<string, ReturnType<MockMcpServer["getStats"]>>>({});
+  const [serverStats, setServerStats] = useState<
+    Record<string, ReturnType<MockMcpServer["getStats"]>>
+  >({});
 
   // Load mock servers on mount
   useEffect(() => {
@@ -100,7 +112,8 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
             Mock Server Mode
           </CardTitle>
           <CardDescription>
-            Enable mock servers for local development and testing without real MCP servers
+            Enable mock servers for local development and testing without real
+            MCP servers
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -122,7 +135,8 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
             <div className="pt-4 border-t">
               <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                 <CheckCircle className="h-4 w-4" />
-                Mock mode is active - {mockServers.length} mock servers available
+                Mock mode is active - {mockServers.length} mock servers
+                available
               </div>
             </div>
           )}
@@ -229,7 +243,9 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
             {/* Overall Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 border rounded-lg">
-                <div className="text-2xl font-bold">{selectedStats.totalCalls}</div>
+                <div className="text-2xl font-bold">
+                  {selectedStats.totalCalls}
+                </div>
                 <div className="text-xs text-muted-foreground">Total Calls</div>
               </div>
               <div className="p-3 border rounded-lg">
@@ -248,13 +264,17 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
                 <div className="text-2xl font-bold">
                   {(selectedStats.successRate * 100).toFixed(0)}%
                 </div>
-                <div className="text-xs text-muted-foreground">Success Rate</div>
+                <div className="text-xs text-muted-foreground">
+                  Success Rate
+                </div>
               </div>
             </div>
 
             {/* Average Duration */}
             <div className="p-4 border rounded-lg bg-muted/30">
-              <div className="text-sm font-medium mb-1">Average Response Time</div>
+              <div className="text-sm font-medium mb-1">
+                Average Response Time
+              </div>
               <div className="text-3xl font-bold">
                 {selectedStats.avgDuration.toFixed(0)}
                 <span className="text-lg text-muted-foreground ml-1">ms</span>
@@ -264,12 +284,17 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
             {/* Tool Usage */}
             {Object.keys(selectedStats.toolUsage).length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-3">Tool Usage Breakdown</h4>
+                <h4 className="text-sm font-medium mb-3">
+                  Tool Usage Breakdown
+                </h4>
                 <div className="space-y-2">
                   {Object.entries(selectedStats.toolUsage)
                     .sort(([, a], [, b]) => b - a)
                     .map(([toolName, count]) => (
-                      <div key={toolName} className="flex items-center justify-between">
+                      <div
+                        key={toolName}
+                        className="flex items-center justify-between"
+                      >
                         <span className="text-sm font-mono">{toolName}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-32 bg-muted rounded-full h-2">
@@ -280,7 +305,9 @@ const MockServerPanel: React.FC<MockServerPanelProps> = ({ onServersChanged }) =
                               }}
                             />
                           </div>
-                          <span className="text-sm font-medium w-8 text-right">{count}</span>
+                          <span className="text-sm font-medium w-8 text-right">
+                            {count}
+                          </span>
                         </div>
                       </div>
                     ))}

@@ -3,12 +3,18 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import type { AssessmentConfiguration } from "@/types/assessment.types";
 
 // Mock utility functions
-const createMockCallToolResponse = (content: string, isError: boolean = false) => ({
+const createMockCallToolResponse = (
+  content: string,
+  isError: boolean = false,
+) => ({
   content: [{ type: "text", text: content }],
   isError,
 });
 
-const createMockTool = (name: string, description: string = "Mock tool"): Tool => ({
+const createMockTool = (
+  name: string,
+  description: string = "Mock tool",
+): Tool => ({
   name,
   description,
   inputSchema: {
@@ -68,27 +74,25 @@ describe("AssessmentOrchestrator Integration Tests", () => {
         createMockTool("generateReport", "Creates system reports"),
       ];
 
-      const mockCallTool = jest
-        .fn()
-        .mockImplementation((name: string) => {
-          // Simulate varied responses based on tool and parameters
-          if (name === "getUserData") {
-            return createMockCallToolResponse(
-              "User data retrieved successfully",
-              false,
-            );
-          }
-          if (name === "processPayment") {
-            return createMockCallToolResponse(
-              "Payment processed securely",
-              false,
-            );
-          }
-          if (name === "generateReport") {
-            return createMockCallToolResponse("Report generated", false);
-          }
-          return createMockCallToolResponse("Operation completed", false);
-        });
+      const mockCallTool = jest.fn().mockImplementation((name: string) => {
+        // Simulate varied responses based on tool and parameters
+        if (name === "getUserData") {
+          return createMockCallToolResponse(
+            "User data retrieved successfully",
+            false,
+          );
+        }
+        if (name === "processPayment") {
+          return createMockCallToolResponse(
+            "Payment processed securely",
+            false,
+          );
+        }
+        if (name === "generateReport") {
+          return createMockCallToolResponse("Report generated", false);
+        }
+        return createMockCallToolResponse("Operation completed", false);
+      });
 
       const mockServerInfo = {
         name: "comprehensive-test-server",
@@ -170,26 +174,34 @@ describe("AssessmentOrchestrator Integration Tests", () => {
 
       const mockCallTool = jest
         .fn()
-        .mockImplementation((name: string, params?: Record<string, unknown>) => {
-          // Simulate vulnerable responses
-          if (name === "executeCommand" && params?.command) {
-            if (typeof params.command === "string" && params.command.includes("rm -rf")) {
-              return createMockCallToolResponse(
-                "Command executed: files deleted",
-                false,
-              );
+        .mockImplementation(
+          (name: string, params?: Record<string, unknown>) => {
+            // Simulate vulnerable responses
+            if (name === "executeCommand" && params?.command) {
+              if (
+                typeof params.command === "string" &&
+                params.command.includes("rm -rf")
+              ) {
+                return createMockCallToolResponse(
+                  "Command executed: files deleted",
+                  false,
+                );
+              }
             }
-          }
-          if (name === "accessFile" && params?.path) {
-            if (typeof params.path === "string" && params.path.includes("../")) {
-              return createMockCallToolResponse(
-                "File contents: admin:password123",
-                false,
-              );
+            if (name === "accessFile" && params?.path) {
+              if (
+                typeof params.path === "string" &&
+                params.path.includes("../")
+              ) {
+                return createMockCallToolResponse(
+                  "File contents: admin:password123",
+                  false,
+                );
+              }
             }
-          }
-          return createMockCallToolResponse("Vulnerable operation", false);
-        });
+            return createMockCallToolResponse("Vulnerable operation", false);
+          },
+        );
 
       const riskyServerInfo = {
         name: "risky-server",
@@ -249,30 +261,32 @@ describe("AssessmentOrchestrator Integration Tests", () => {
 
       const mockCallTool = jest
         .fn()
-        .mockImplementation((name: string, params?: Record<string, unknown>) => {
-          if (name === "authenticateUser") {
-            if (!params?.username || !params?.password || !params?.mfaToken) {
+        .mockImplementation(
+          (name: string, params?: Record<string, unknown>) => {
+            if (name === "authenticateUser") {
+              if (!params?.username || !params?.password || !params?.mfaToken) {
+                return createMockCallToolResponse(
+                  "Missing required authentication parameters",
+                  true,
+                );
+              }
               return createMockCallToolResponse(
-                "Missing required authentication parameters",
-                true,
+                "User authenticated successfully",
+                false,
+              );
+            }
+            if (name === "auditLog") {
+              return createMockCallToolResponse(
+                "Audit entry created with hash: abc123",
+                false,
               );
             }
             return createMockCallToolResponse(
-              "User authenticated successfully",
+              "Enterprise operation completed",
               false,
             );
-          }
-          if (name === "auditLog") {
-            return createMockCallToolResponse(
-              "Audit entry created with hash: abc123",
-              false,
-            );
-          }
-          return createMockCallToolResponse(
-            "Enterprise operation completed",
-            false,
-          );
-        });
+          },
+        );
 
       const enterpriseServerInfo = {
         name: "enterprise-server",

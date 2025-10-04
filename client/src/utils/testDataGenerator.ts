@@ -55,7 +55,7 @@ const DEFAULT_CONFIG: Required<TestDataConfig> = {
  */
 export function generateTestData(
   schema: JsonSchemaType,
-  config: Partial<TestDataConfig> = {}
+  config: Partial<TestDataConfig> = {},
 ): unknown {
   const fullConfig = { ...DEFAULT_CONFIG, ...config };
 
@@ -80,7 +80,7 @@ export function generateTestData(
  */
 function generateValidData(
   schema: JsonSchemaType,
-  config: Required<TestDataConfig>
+  config: Required<TestDataConfig>,
 ): unknown {
   // Handle default value
   if ("default" in schema && schema.default !== undefined) {
@@ -90,7 +90,7 @@ function generateValidData(
   // Handle anyOf (union types)
   if (schema.anyOf) {
     const nonNullOption = schema.anyOf.find(
-      (opt) => (opt as JsonSchemaType).type !== "null"
+      (opt) => (opt as JsonSchemaType).type !== "null",
     );
     if (nonNullOption) {
       return generateValidData(nonNullOption as JsonSchemaType, config);
@@ -118,7 +118,7 @@ function generateValidData(
       const minLength = schema.minLength || 1;
       const maxLength = Math.min(
         schema.maxLength || config.maxStringLength,
-        config.maxStringLength
+        config.maxStringLength,
       );
       const length = Math.max(minLength, Math.min(maxLength, 10));
       return generateRandomString(length, schema.pattern);
@@ -143,12 +143,12 @@ function generateValidData(
       const minItems = schema.minItems || 0;
       const maxItems = Math.min(
         schema.maxItems || config.maxArrayItems,
-        config.maxArrayItems
+        config.maxArrayItems,
       );
       const itemCount = Math.max(minItems, Math.min(maxItems, 2));
 
       return Array.from({ length: itemCount }, () =>
-        generateValidData(items, config)
+        generateValidData(items, config),
       );
     }
 
@@ -181,7 +181,7 @@ function generateValidData(
  */
 function generateInvalidData(
   schema: JsonSchemaType,
-  _config: Required<TestDataConfig>
+  _config: Required<TestDataConfig>,
 ): unknown {
   switch (schema.type) {
     case "string":
@@ -215,7 +215,7 @@ function generateInvalidData(
  */
 function generateEdgeCaseData(
   schema: JsonSchemaType,
-  config: Required<TestDataConfig>
+  config: Required<TestDataConfig>,
 ): unknown {
   const edgeCases: Record<string, unknown[]> = {
     string: [
@@ -240,7 +240,7 @@ function generateEdgeCaseData(
       "مرحبا", // RTL text
       "你好", // CJK characters
       "\u0000", // Null byte
-      "\uFFFD" // Replacement character
+      "\uFFFD", // Replacement character
     );
   }
 
@@ -253,7 +253,7 @@ function generateEdgeCaseData(
  */
 function generateBoundaryData(
   schema: JsonSchemaType,
-  config: Required<TestDataConfig>
+  config: Required<TestDataConfig>,
 ): unknown {
   switch (schema.type) {
     case "string":
@@ -290,12 +290,12 @@ function generateBoundaryData(
 
       if (schema.minItems !== undefined) {
         return Array.from({ length: schema.minItems }, () =>
-          generateValidData(items, config)
+          generateValidData(items, config),
         );
       }
       if (schema.maxItems !== undefined) {
         return Array.from({ length: schema.maxItems }, () =>
-          generateValidData(items, config)
+          generateValidData(items, config),
         );
       }
       return [];
@@ -311,7 +311,7 @@ function generateBoundaryData(
  */
 function generateFuzzingData(
   schema: JsonSchemaType,
-  config: Required<TestDataConfig>
+  config: Required<TestDataConfig>,
 ): unknown {
   const fuzzPatterns: string[] = [];
 
@@ -322,7 +322,7 @@ function generateFuzzingData(
       "'; DROP TABLE users--",
       "1' UNION SELECT NULL--",
       "admin'--",
-      "' OR 1=1--"
+      "' OR 1=1--",
     );
   }
 
@@ -333,7 +333,7 @@ function generateFuzzingData(
       "<img src=x onerror=alert('XSS')>",
       "javascript:alert('XSS')",
       "<iframe src='javascript:alert(1)'>",
-      "'\"><script>alert(String.fromCharCode(88,83,83))</script>"
+      "'\"><script>alert(String.fromCharCode(88,83,83))</script>",
     );
   }
 
@@ -345,7 +345,7 @@ function generateFuzzingData(
     "; rm -rf /",
     "| whoami",
     "&& cat /etc/passwd",
-    "`cat /etc/passwd`"
+    "`cat /etc/passwd`",
   );
 
   // Format string attacks
@@ -357,7 +357,7 @@ function generateFuzzingData(
       "\u0000", // Null byte
       "\uFEFF", // Zero-width no-break space
       "\u202E", // Right-to-left override
-      "test\u0000.txt" // Null byte in filename
+      "test\u0000.txt", // Null byte in filename
     );
   }
 
@@ -374,7 +374,7 @@ function generateFuzzingData(
  */
 export function generateAllTestCases(
   schema: JsonSchemaType,
-  config: Partial<TestDataConfig> = {}
+  config: Partial<TestDataConfig> = {},
 ): GeneratedTestCase[] {
   const strategies: TestDataStrategy[] = [
     "valid",
@@ -406,7 +406,7 @@ export function generateAllTestCases(
 function getTestDescription(
   strategy: TestDataStrategy,
   schema: JsonSchemaType,
-  index: number
+  index: number,
 ): string {
   const type = schema.type || "unknown";
   const baseDesc = {
@@ -425,7 +425,7 @@ function getTestDescription(
  */
 function getTestNotes(
   strategy: TestDataStrategy,
-  _schema: JsonSchemaType
+  _schema: JsonSchemaType,
 ): string | undefined {
   const notes: Record<TestDataStrategy, string> = {
     valid: "Should pass validation",
@@ -445,10 +445,11 @@ function generateRandomString(length: number, pattern?: string): string {
   if (pattern) {
     // Try to generate string matching pattern (simplified)
     // For now, use alphanumeric
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const chars =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     return Array.from(
       { length },
-      () => chars[Math.floor(Math.random() * chars.length)]
+      () => chars[Math.floor(Math.random() * chars.length)],
     ).join("");
   }
 
@@ -476,7 +477,7 @@ function generateRandomString(length: number, pattern?: string): string {
  */
 export function generateToolParameterTests(
   properties: Record<string, JsonSchemaType>,
-  _required: string[] = []
+  _required: string[] = [],
 ): Record<string, GeneratedTestCase[]> {
   const testCases: Record<string, GeneratedTestCase[]> = {};
 
@@ -501,7 +502,7 @@ export interface ToolTestSuite {
 
 export function generateToolTestSuite(
   properties: Record<string, JsonSchemaType>,
-  required: string[] = []
+  required: string[] = [],
 ): ToolTestSuite {
   const suite: ToolTestSuite = {
     valid: [],
@@ -513,7 +514,10 @@ export function generateToolTestSuite(
   };
 
   // Generate valid cases
-  const validConfig: TestDataConfig = { strategy: "valid", includeOptional: true };
+  const validConfig: TestDataConfig = {
+    strategy: "valid",
+    includeOptional: true,
+  };
   for (let i = 0; i < 3; i++) {
     const validCase: Record<string, unknown> = {};
     Object.entries(properties).forEach(([key, schema]) => {

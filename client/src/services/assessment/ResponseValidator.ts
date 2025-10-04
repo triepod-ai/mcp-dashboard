@@ -89,7 +89,10 @@ export class ResponseValidator {
     // Calculate overall validity and confidence
     const passedValidations = validations.filter((v) => v).length;
     result.isValid = passedValidations >= 1; // More lenient: just need 1/5 validations to pass
-    result.confidence = Math.max(20, (passedValidations / validations.length) * 100);
+    result.confidence = Math.max(
+      20,
+      (passedValidations / validations.length) * 100,
+    );
 
     // Classify based on validation results - more lenient thresholds
     if (passedValidations >= 3) {

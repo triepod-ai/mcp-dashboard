@@ -338,7 +338,9 @@ export class SecurityAssessor extends BaseAssessor {
         : tool.inputSchema;
 
     const schemaObj = schema as any;
-    return schemaObj?.properties && Object.keys(schemaObj.properties).length > 0;
+    return (
+      schemaObj?.properties && Object.keys(schemaObj.properties).length > 0
+    );
   }
 
   private createTestParameters(payload: string): Record<string, unknown> {
@@ -365,7 +367,12 @@ export class SecurityAssessor extends BaseAssessor {
     if (response.content) {
       if (Array.isArray(response.content)) {
         return response.content
-          .map((c: unknown) => (c as { text?: string; content?: string }).text || (c as { text?: string; content?: string }).content || "")
+          .map(
+            (c: unknown) =>
+              (c as { text?: string; content?: string }).text ||
+              (c as { text?: string; content?: string }).content ||
+              "",
+          )
           .join(" ");
       }
       return String(response.content);

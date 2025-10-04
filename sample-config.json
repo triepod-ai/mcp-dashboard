@@ -29,7 +29,10 @@
     },
     "postgres": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-postgres", "postgresql://localhost/testdb"],
+      "args": [
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/testdb"
+      ],
       "description": "PostgreSQL database server (requires local DB)",
       "enabled": false
     },

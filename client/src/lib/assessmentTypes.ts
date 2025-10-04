@@ -3,7 +3,11 @@
  * Based on Anthropic's 5 core requirements for MCP directory submission
  */
 
-export type AssessmentStatus = "PASS" | "FAIL" | "NEED_MORE_INFO" | "NOT_APPLICABLE";
+export type AssessmentStatus =
+  | "PASS"
+  | "FAIL"
+  | "NEED_MORE_INFO"
+  | "NOT_APPLICABLE";
 export type SecurityRiskLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export interface ToolTestResult {
@@ -339,7 +343,6 @@ export interface StreamingSupportMetrics {
   };
 }
 
-
 // Dynamic Security Assessment
 export interface DynamicSecurityAssessment {
   runtimeTests: RuntimeTestResult[];
@@ -385,8 +388,6 @@ export interface BehaviorAnalysisReport {
   processSpawning: boolean;
   anomalyScore: number;
 }
-
-
 
 export interface MCPDirectoryAssessment {
   serverName: string;
