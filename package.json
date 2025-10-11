@@ -1,11 +1,11 @@
 {
-  "name": "@modelcontextprotocol/dashboard",
+  "name": "@bryan-thompson/dashboard",
   "version": "0.1.0",
   "description": "MCP Dashboard - Multi-server management and monitoring interface for Model Context Protocol",
   "license": "MIT",
-  "author": "Anthropic, PBC (https://anthropic.com)",
-  "homepage": "https://modelcontextprotocol.io",
-  "bugs": "https://github.com/modelcontextprotocol/inspector/issues",
+  "author": "Bryan Thompson",
+  "homepage": "https://github.com/triepod-ai/dashboard",
+  "bugs": "https://github.com/triepod-ai/dashboard/issues",
   "type": "module",
   "bin": {
     "mcp-dashboard": "cli/build/cli.js"
@@ -48,9 +48,9 @@
     "kill": "for port in 6286 6287; do lsof -ti:$port | xargs kill -9 2>/dev/null || echo \"No process on port $port\"; done"
   },
   "dependencies": {
-    "@modelcontextprotocol/dashboard-cli": "^0.1.0",
-    "@modelcontextprotocol/dashboard-client": "^0.1.0",
-    "@modelcontextprotocol/dashboard-server": "^0.1.0",
+    "@bryan-thompson/dashboard-cli": "^0.1.0",
+    "@bryan-thompson/dashboard-client": "^0.1.0",
+    "@bryan-thompson/dashboard-server": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.18.0",
     "concurrently": "^9.2.0",
     "node-fetch": "^3.3.2",

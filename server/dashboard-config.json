@@ -1,39 +1,39 @@
 {
   "mcpServers": {
-    "chroma": {
-      "name": "chroma",
-      "command": "/home/bryan/run-chroma-mcp.sh",
-      "args": [],
-      "env": {
-        "PYTHONUNBUFFERED": "1",
-        "TQDM_DISABLE": "1"
-      },
-      "transport": "stdio",
-      "enabled": true
-    },
-    "6505d5d7-3acc-4c55-bef4-b88db604a64c": {
-      "name": "ollama",
-      "command": "/home/bryan/run-ollama-mcp.sh",
-      "args": [],
-      "env": {},
-      "transport": "stdio",
-      "enabled": true
-    },
-    "b499abf3-4cbc-4030-8fb6-4515b6a01c4e": {
-      "name": "qdrant",
-      "command": "/home/bryan/run-mcp-qdrant-docker.sh",
-      "args": [],
-      "env": {},
-      "transport": "stdio",
-      "enabled": true
-    },
-    "93d0f91c-e291-4ec8-8866-4c6825919b1d": {
-      "name": "qdrant http",
+    "47be6590-1393-47ec-943d-ac465cadfdd6": {
+      "name": "qdrant-http",
       "command": "",
       "args": [],
       "env": {},
       "transport": "streamable-http",
-      "serverUrl": "http://localhost:10650/mcp",
+      "serverUrl": "http://10.0.0.225:10650/mcp",
+      "enabled": true
+    },
+    "2f797b35-f97e-42a6-979c-6534b7960f46": {
+      "name": "chroma-http",
+      "command": "",
+      "args": [],
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://10.0.0.225:10550/mcp",
+      "enabled": true
+    },
+    "d8c53752-cf3d-4c9d-ba41-3cfe403f3d50": {
+      "name": "redis-http",
+      "command": "",
+      "args": [],
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://10.0.0.225:10750/mcp",
+      "enabled": true
+    },
+    "1e2de984-53b0-46e5-a29d-2cb174acfeac": {
+      "name": "memory-http",
+      "command": "",
+      "args": [],
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://10.0.0.225:10600/mcp",
       "enabled": true
     }
   }
