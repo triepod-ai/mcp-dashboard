@@ -37,11 +37,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
   // Dashboard API configuration
   const DEFAULT_API_URL = "http://localhost:6287/api/dashboard";
   const urlParams = new URLSearchParams(window.location.search);
-  const authToken =
-    urlParams.get("MCP_PROXY_AUTH_TOKEN") ||
-    urlParams.get("token") ||
-    localStorage.getItem("mcp_dashboard_token") ||
-    "";
+
+  // Get token from URL params or localStorage
+  const urlToken = urlParams.get("MCP_PROXY_AUTH_TOKEN") || urlParams.get("token");
+  const storedToken = localStorage.getItem("mcp_dashboard_token");
+  const authToken = urlToken || storedToken || "";
+
+  // Save URL token to localStorage if provided
+  useEffect(() => {
+    if (urlToken && urlToken !== storedToken) {
+      localStorage.setItem("mcp_dashboard_token", urlToken);
+      console.log("💾 Saved auth token to localStorage");
+    }
+  }, [urlToken, storedToken]);
 
   // Use SSE hook for real-time server data
   const { serverEvents, clearServerEvents } = useDashboardSSE({

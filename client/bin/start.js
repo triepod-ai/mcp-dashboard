@@ -24,6 +24,8 @@ function getClientUrl(port, authDisabled, sessionToken, serverPort) {
   if (!authDisabled) {
     params.set("MCP_PROXY_AUTH_TOKEN", sessionToken);
   }
+  // Add cache-busting parameter to force fresh loads
+  params.set("_t", Date.now().toString());
   return params.size > 0 ? `${baseUrl}/?${params.toString()}` : baseUrl;
 }
 
