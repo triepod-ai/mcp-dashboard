@@ -60,6 +60,54 @@ dashboard/
 - Enhanced multi-server management interface
 - Improved UI/UX with modern components
 
+## Change History
+
+### 2025-10-11 - Project Simplification and Rebranding
+
+**Major Refactoring: Assessment Removal**
+- Removed 46 assessment-related files (25,932 lines of code)
+- Deleted 7 assessment UI components
+- Removed 8 assessor service modules
+- Deleted 9 test files for assessment features
+- Removed 4 assessment documentation files
+- Updated DashboardLayout to remove assessment tab
+- Simplified README and PROJECT_STATUS to reflect core focus
+- Commit: `dd79db1`
+
+**Branding Update: MCP Inspector → MCP Dashboard**
+- Updated startup messages in client/bin/start.js
+- Changed console output to "MCP Dashboard"
+- Reflected correct product name throughout application
+- Commit: `a68965c`
+
+**Package Namespace Migration**
+- Changed namespace: `@modelcontextprotocol/*` → `@bryan-thompson/*`
+- Updated root package: `@bryan-thompson/dashboard`
+- Updated client package: `@bryan-thompson/dashboard-client`
+- Updated server package: `@bryan-thompson/dashboard-server`
+- Updated CLI package: `@bryan-thompson/dashboard-cli`
+- Changed author from "Anthropic, PBC" to "Bryan Thompson"
+- Updated repository URLs to `https://github.com/triepod-ai/dashboard`
+- Regenerated package-lock.json with new workspace references
+- Commit: `5c0dd90`
+
+**Documentation Overhaul**
+- Updated CLAUDE.md header to "MCP Dashboard Development Guide"
+- Updated CONTRIBUTING.md with correct branding and URLs
+- Corrected development port from 6274 to 6286
+- Rewrote client/README.md with relevant MCP Dashboard content
+- Removed outdated todo.md file
+- Removed assessment-specific client/PROJECT_STATUS.md
+- All docs now reflect simplified implementation and correct ownership
+- Commit: `ab1c620`
+
+**Impact:**
+- Simplified codebase focused on core MCP server management
+- Clear project identity as multi-server dashboard
+- Correct package namespace and attribution
+- Improved documentation accuracy
+- Ready for independent development and enhancement
+
 ### Development
 
 **Build & Run:**
