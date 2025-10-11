@@ -83,12 +83,13 @@ const DEFAULT_API_URL = "http://localhost:6287/api/dashboard";
 export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
   dashboardApiUrl = DEFAULT_API_URL,
 }) => {
-  // Get auth token from URL params or environment
+  // Get auth token from URL params or localStorage
   const urlParams = new URLSearchParams(window.location.search);
   const authToken =
+    urlParams.get("MCP_PROXY_AUTH_TOKEN") ||
     urlParams.get("token") ||
     localStorage.getItem("mcp_dashboard_token") ||
-    "22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1"; // fallback to current token
+    "";
 
   // Use SSE hook for real-time updates
   const { status, connectionState, reconnect } = useDashboardSSE({
@@ -96,6 +97,17 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
     authToken,
     autoReconnect: true,
   });
+
+  // Helper to create headers with auth token
+  const getAuthHeaders = () => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["x-mcp-proxy-auth"] = authToken;
+    }
+    return headers;
+  };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,6 +156,7 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
         `${dashboardApiUrl}/servers/${serverId}/connect`,
         {
           method: "POST",
+          headers: getAuthHeaders(),
         },
       );
       if (!response.ok) {
@@ -165,6 +178,7 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
         `${dashboardApiUrl}/servers/${serverId}/disconnect`,
         {
           method: "POST",
+          headers: getAuthHeaders(),
         },
       );
       if (!response.ok) {
@@ -202,9 +216,7 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
 
       const response = await fetch(`${dashboardApiUrl}/servers`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(serverConfig),
       });
 
@@ -240,6 +252,7 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
     try {
       const response = await fetch(`${dashboardApiUrl}/servers/${serverId}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
       if (!response.ok) {
         throw new Error(`Failed to remove server: ${response.statusText}`);

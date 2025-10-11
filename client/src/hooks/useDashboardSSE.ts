@@ -150,6 +150,24 @@ export function useDashboardSSE({
         console.error("📡 EventSource readyState:", eventSource.readyState);
         console.error("📡 EventSource url:", eventSource.url);
 
+        // Check if this is likely a 401 Unauthorized (readyState 2 = CLOSED on auth failure)
+        const isAuthError = eventSource.readyState === 2;
+        const storedToken = localStorage.getItem("mcp_dashboard_token");
+
+        if (isAuthError && storedToken && authToken === storedToken) {
+          console.warn(
+            "⚠️ Authentication failed - stored token appears invalid. Clearing localStorage...",
+          );
+          localStorage.removeItem("mcp_dashboard_token");
+          setConnectionState(() => ({
+            status: "error",
+            retryCount: 0,
+            error:
+              "Authentication token mismatch. Please refresh the page to get a new token from the server.",
+          }));
+          return; // Don't retry on auth failures
+        }
+
         setConnectionState((prev) => {
           const newState = {
             ...prev,

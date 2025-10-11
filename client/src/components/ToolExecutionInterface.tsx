@@ -86,6 +86,25 @@ interface ToolExecution {
 }
 
 const ToolExecutionInterface: React.FC = () => {
+  // Get auth token from URL params or localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const authToken =
+    urlParams.get("MCP_PROXY_AUTH_TOKEN") ||
+    urlParams.get("token") ||
+    localStorage.getItem("mcp_dashboard_token") ||
+    "";
+
+  // Helper to create headers with auth token
+  const getAuthHeaders = () => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["x-mcp-proxy-auth"] = authToken;
+    }
+    return headers;
+  };
+
   const [servers, setServers] = useState<Server[]>([]);
   const [selectedServer, setSelectedServer] = useState<string>("");
   const [selectedTool, setSelectedTool] = useState<string>("");
@@ -122,6 +141,9 @@ const ToolExecutionInterface: React.FC = () => {
     try {
       const response = await fetch(
         "http://localhost:6287/api/dashboard/servers",
+        {
+          headers: getAuthHeaders(),
+        },
       );
       const data = await response.json();
 
@@ -136,6 +158,9 @@ const ToolExecutionInterface: React.FC = () => {
             try {
               const toolsResponse = await fetch(
                 `http://localhost:6287/api/dashboard/servers/${server.id}/tools`,
+                {
+                  headers: getAuthHeaders(),
+                },
               );
               const toolsData = await toolsResponse.json();
               return { ...server, tools: toolsData.tools || [] };
@@ -259,9 +284,7 @@ const ToolExecutionInterface: React.FC = () => {
             `http://localhost:6287/api/dashboard/servers/${selectedServer}/tools/${selectedTool}/execute`,
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: getAuthHeaders(),
               body: JSON.stringify({ parameters }),
             },
           );
