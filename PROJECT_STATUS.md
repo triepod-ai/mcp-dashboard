@@ -6,6 +6,8 @@
 
 A web-based dashboard for managing and interacting with multiple MCP (Model Context Protocol) servers simultaneously. Built on the foundation of MCP Inspector with enhanced multi-server capabilities.
 
+**Latest Version:** v0.1.4
+
 ### Core Features
 
 ✅ **Multi-Server Management**
@@ -53,14 +55,41 @@ dashboard/
 └── docs/            # Documentation
 ```
 
-### Recent Changes
+### Recent Changes (v0.1.4)
 
-- Removed assessment functionality (simplified to core MCP dashboard features)
-- Maintained all core MCP Inspector capabilities
-- Enhanced multi-server management interface
-- Improved UI/UX with modern components
+- **Tool Execution Enhancements**: Added collapsible sections with chevrons for execution history
+- **Formatted View Reorganization**: Separated "Is Error" and "Structured Content" sections
+- **Copy Functionality**: Each section has its own copy button for selective data extraction
+- **Version Display**: Updated footer to show current version (v0.1.4)
+- **Previous**: Removed assessment functionality (simplified to core MCP dashboard features)
+- **Previous**: Enhanced multi-server management interface with transport details and tool counts
 
 ## Change History
+
+### 2025-10-11 - UI Enhancements: Collapsible Sections (v0.1.4)
+
+**Tool Execution Interface Improvements**
+- Added chevron buttons to collapse/expand execution history items
+- Reorganized Formatted view with collapsible sections:
+  - "Is Error" section (displays error status)
+  - "Structured Content" section (formatted view of all other data)
+- Each section has its own copy button for copying specific content
+- Removed duplicate copy button in Formatted view (only shows in Raw mode)
+- Sections maintain persistent expansion state across re-renders
+- Improved handling of long JSON outputs with better organization
+- Commit: `61e7078`
+
+**Version Management**
+- Updated footer version display from v0.1.0 to v0.1.4
+- Published to NPM as `@bryan-thompson/dashboard@0.1.4`
+- All workspace packages synchronized to v0.1.4
+- Commit: `ebce010`
+
+**Impact:**
+- Better UX for viewing tool execution results
+- Cleaner interface with collapsible sections
+- Section-specific copy functionality for selective data extraction
+- Consistent version display across application
 
 ### 2025-10-11 - Project Simplification and Rebranding
 
