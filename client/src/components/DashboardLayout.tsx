@@ -5,7 +5,6 @@ import {
   Wrench,
   FileText,
   Settings,
-  Shield,
   Menu,
   X,
 } from "lucide-react";
@@ -14,13 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "./ThemeToggle";
 import ServerManagementPanel from "./ServerManagementPanel";
 import ToolExecutionInterface from "./ToolExecutionInterface";
-import AssessmentTabWrapper from "./AssessmentTabWrapper";
 import HistoryAndNotifications, {
   RequestHistoryItem,
   ServerNotification,
 } from "./HistoryAndNotifications";
 import { useDashboardSSE } from "@/hooks/useDashboardSSE";
-import type { CompatibilityCallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export interface DashboardLayoutProps {
   className?: string;
@@ -28,14 +25,6 @@ export interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [serversWithTools, setServersWithTools] = useState<
-    Array<{
-      id: string;
-      name: string;
-      status: "connecting" | "connected" | "disconnected" | "error";
-      tools: unknown[];
-    }>
-  >([]);
 
   // History and Notifications state
   const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>(
@@ -54,7 +43,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
     "22c1ba6298f1d4cb49f5afacf957643461e2cb5340ce05ebfd0a4a887e65cac1";
 
   // Use SSE hook for real-time server data
-  const { status, serverEvents, clearServerEvents } = useDashboardSSE({
+  const { serverEvents, clearServerEvents } = useDashboardSSE({
     url: DEFAULT_API_URL.replace("/api/dashboard", ""),
     authToken,
     autoReconnect: true,
@@ -70,106 +59,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
     }));
     setServerNotifications(notifications);
   }, [serverEvents]);
-
-  // Fetch tools for connected servers
-  const fetchServerTools = useCallback(
-    async (
-      servers: {
-        id: string;
-        name: string;
-        status: "connecting" | "connected" | "disconnected" | "error";
-      }[],
-    ) => {
-      const serversWithToolsPromises = servers.map(async (server) => {
-        if (server.status !== "connected") {
-          return { ...server, tools: [] };
-        }
-
-        try {
-          const toolsResponse = await fetch(
-            `${DEFAULT_API_URL}/servers/${server.id}/tools`,
-          );
-          const toolsData = await toolsResponse.json();
-          return { ...server, tools: toolsData.tools || [] };
-        } catch (error) {
-          console.error(
-            `Failed to fetch tools for server ${server.id}:`,
-            error,
-          );
-          return { ...server, tools: [] };
-        }
-      });
-
-      const result = await Promise.all(serversWithToolsPromises);
-      setServersWithTools(result);
-    },
-    [DEFAULT_API_URL],
-  );
-
-  // Update servers with tools when status changes
-  useEffect(() => {
-    if (status?.servers) {
-      fetchServerTools(status.servers);
-    }
-  }, [status?.servers, fetchServerTools]);
-
-  // Tool calling function for AssessmentInterface
-  const handleCallTool = useCallback(
-    async (
-      serverId: string,
-      toolName: string,
-      params: Record<string, unknown>,
-    ): Promise<CompatibilityCallToolResult> => {
-      const requestData = {
-        method: `tools/${toolName}`,
-        serverId,
-        params,
-      };
-
-      // Add to request history
-      const historyItem: RequestHistoryItem = {
-        request: JSON.stringify(requestData),
-        server: serverId,
-        timestamp: Date.now(),
-      };
-
-      try {
-        const response = await fetch(
-          `${DEFAULT_API_URL}/servers/${serverId}/tools/${toolName}/call`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ params }),
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`Tool call failed: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-
-        // Update history with response
-        historyItem.response = JSON.stringify(result);
-        setRequestHistory((prev) => [...prev, historyItem]);
-
-        return result;
-      } catch (error) {
-        console.error("Tool call error:", error);
-
-        // Update history with error
-        historyItem.response = JSON.stringify({
-          error: (error as Error).message,
-        });
-        setRequestHistory((prev) => [...prev, historyItem]);
-
-        throw error;
-      }
-    },
-    [DEFAULT_API_URL],
-  );
 
   // Clear handlers
   const clearHistory = useCallback(() => {
@@ -230,17 +119,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
       label: "Tools",
       icon: Wrench,
       component: <ToolExecutionInterface />,
-    },
-    {
-      id: "assessment",
-      label: "Assessment",
-      icon: Shield,
-      component: (
-        <AssessmentTabWrapper
-          servers={serversWithTools}
-          onCallTool={handleCallTool}
-        />
-      ),
     },
     {
       id: "resources",

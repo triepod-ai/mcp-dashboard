@@ -1,8 +1,8 @@
 # MCP Dashboard
 
-The MCP Dashboard is a comprehensive management and monitoring interface for multiple Model Context Protocol (MCP) servers. Built on the foundation of MCP Inspector, it provides enhanced capabilities for connecting to, managing, and monitoring multiple MCP servers simultaneously with real-time updates and analytics.
+The MCP Dashboard is a comprehensive management and monitoring interface for multiple Model Context Protocol (MCP) servers. Built on the foundation of MCP Inspector, it provides enhanced capabilities for connecting to, managing, and monitoring multiple MCP servers simultaneously with real-time updates.
 
-> **Note**: This is a fork of the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) by Anthropic. All core inspection and debugging features from the original project are preserved. This fork adds **MCP Directory Assessment** capabilities and enhanced dashboard features for quality assurance and server validation.
+> **Note**: This is a fork of the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) by Anthropic. All core inspection and debugging features from the original project are preserved.
 
 ## Features
 
@@ -17,92 +17,10 @@ The MCP Dashboard is a comprehensive management and monitoring interface for mul
 
 ### Enhanced Features (Dashboard Extensions)
 
-- **MCP Directory Assessment**: Comprehensive quality assurance testing for MCP Directory submissions
-  - 5-category scoring: Functionality, Security, Documentation, Error Handling, Usability
-  - Automated test generation with intelligent parameter creation
-  - MCP Specification compliance validation
-  - Security vulnerability scanning (SQL injection, XSS, command injection)
-  - Mock server infrastructure for offline development and testing
 - **Multi-Server Management**: Connect to and manage multiple MCP servers simultaneously
 - **Real-Time Updates**: Server-Sent Events (SSE) for live status monitoring
 - **Dark Mode**: Theme system with light/dark/system mode support
 - **Enhanced UI**: Modern React interface with improved navigation and visualization
-
-## MCP Directory Assessment Module
-
-The primary enhancement in this fork is the **MCP Directory Assessment Module**, designed to help developers validate their MCP servers against quality standards before submitting to the MCP Directory.
-
-### Assessment Categories
-
-The assessment system evaluates MCP servers across five key dimensions:
-
-1. **Functionality** (20 points)
-   - Tool execution success rate
-   - Parameter handling correctness
-   - Response format validation
-   - Edge case handling
-
-2. **Security** (20 points)
-   - Input validation and sanitization
-   - Injection attack resistance (SQL, XSS, command injection)
-   - Error message information disclosure
-   - Authentication and authorization patterns
-
-3. **Documentation** (20 points)
-   - README completeness
-   - Tool descriptions and parameter documentation
-   - Usage examples and code samples
-   - Error handling documentation
-
-4. **Error Handling** (20 points)
-   - JSON-RPC 2.0 compliance
-   - Proper error codes and messages
-   - Graceful degradation
-   - Input validation error responses
-
-5. **Usability** (20 points)
-   - Schema quality and completeness
-   - Parameter naming conventions
-   - Tool discoverability
-   - User experience patterns
-
-### How It Works
-
-1. **Connect Server**: Add your MCP server to the dashboard (STDIO, SSE, or HTTP transport)
-2. **Navigate to Assessment Tab**: Click the "Assessment" tab in the dashboard
-3. **Select Server**: Choose your server from the dropdown
-4. **Configure (Optional)**: Set README content and testing parameters
-5. **Run Assessment**: Click "Run Assessment" to start automated testing
-6. **Review Results**: View detailed scoring, tool-by-tool results, and recommendations
-
-### Key Features
-
-- **Automated Testing**: Generates test cases automatically based on tool schemas
-- **Smart Parameter Generation**: Creates contextually appropriate test data for each tool
-- **Security Fuzzing**: Tests for common vulnerabilities (SQL injection, XSS, path traversal)
-- **Mock Servers**: Offline development mode with configurable mock MCP servers
-- **Detailed Reports**: Exportable results in text and JSON formats
-- **Pass/Review/Fail Classification**: Clear guidance on what needs improvement
-
-### Assessment Output
-
-```
-Overall Assessment: PASS (87/100)
-
-Category Scores:
-✓ Functionality: 18/20 (PASS)
-✓ Security: 17/20 (PASS)
-⚠ Documentation: 15/20 (NEEDS_REVIEW)
-✓ Error Handling: 19/20 (PASS)
-✓ Usability: 18/20 (PASS)
-
-Tools Tested: 6/6 passed
-```
-
-For detailed documentation on the assessment module, see:
-
-- [IMPLEMENTATION_SUMMARY.md](client/IMPLEMENTATION_SUMMARY.md) - Technical implementation details
-- [MOCK_SERVER_INTEGRATION.md](client/MOCK_SERVER_INTEGRATION.md) - Mock server usage guide
 
 ## Architecture Overview
 
@@ -130,43 +48,15 @@ npx @modelcontextprotocol/inspector
 
 The server will start up and the UI will be accessible at `http://localhost:6274`.
 
-### Assessment Quick Start
+### From this repository
 
-To use the **MCP Directory Assessment** features:
+If you want to run from the source:
 
-1. **Start the Dashboard** (from this repository):
-
-   ```bash
-   npm install
-   npm run build
-   npm run dev
-   ```
-
-2. **Add Your MCP Server**:
-   - Open `http://localhost:6274` in your browser
-   - Navigate to the "Servers" tab
-   - Click "Add Server" and configure your MCP server connection
-   - Supported transports: STDIO, SSE, Streamable HTTP
-
-3. **Run Assessment**:
-   - Click the "Assessment" tab in the navigation
-   - Select your server from the dropdown
-   - (Optional) Paste your README content for documentation assessment
-   - Click "Run Assessment"
-   - Wait for automated testing to complete (typically 30-60 seconds)
-
-4. **Review Results**:
-   - View overall score and category breakdowns
-   - Expand categories to see detailed findings
-   - Check tool-by-tool test results
-   - Export report as text or JSON
-
-5. **Fix Issues**:
-   - Address any "FAIL" or "NEEDS_REVIEW" categories
-   - Improve error handling, security, or documentation as needed
-   - Re-run assessment to verify improvements
-
-For local development without a real MCP server, use the built-in mock servers (see [MOCK_SERVER_INTEGRATION.md](client/MOCK_SERVER_INTEGRATION.md)).
+```bash
+npm install
+npm run build
+npm run dev
+```
 
 ### Docker Container
 
@@ -507,7 +397,7 @@ Note that if both the query param and the corresponding localStorage item are se
 
 ### From this repository
 
-If you're working on the inspector itself:
+If you're working on the dashboard itself:
 
 Development mode:
 
