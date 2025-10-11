@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "chroma": {
+      "name": "chroma",
       "command": "/home/bryan/run-chroma-mcp.sh",
       "args": [],
       "env": {
@@ -8,17 +9,6 @@
         "TQDM_DISABLE": "1"
       },
       "transport": "stdio",
-      "description": "Chroma vector database MCP server",
-      "enabled": true
-    },
-    "qdrant": {
-      "command": "/home/bryan/run-qdrant-docker-mcp.sh",
-      "args": [],
-      "env": {
-        "PYTHONUNBUFFERED": "1"
-      },
-      "transport": "stdio",
-      "description": "Qdrant enhanced MCP server",
       "enabled": true
     }
   }
