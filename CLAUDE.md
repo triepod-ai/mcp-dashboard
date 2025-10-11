@@ -1,4 +1,4 @@
-# MCP Inspector Development Guide
+# MCP Dashboard Development Guide
 
 ## Build Commands
 

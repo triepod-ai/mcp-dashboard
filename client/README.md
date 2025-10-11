@@ -1,50 +1,69 @@
-# React + TypeScript + Vite
+# MCP Dashboard Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web-based client interface for the MCP Dashboard - a multi-server management and monitoring tool for Model Context Protocol servers.
 
-Currently, two official plugins are available:
+## Technology Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 18** - UI framework
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - UI component library
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+```bash
+# Install dependencies (from root)
+npm install
 
-- Configure the top-level `parserOptions` property like this:
+# Start development server
+npm run dev
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+# Build for production
+npm run build
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Architecture
 
-```js
-// eslint.config.js
-import react from "eslint-plugin-react";
+The client uses a modern React architecture with:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: "18.3" } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs["jsx-runtime"].rules,
-  },
-});
+- **Component-based design** - Reusable UI components in `src/components/`
+- **Service layer** - Business logic in `src/services/`
+- **Type safety** - Full TypeScript coverage
+- **Real-time updates** - Server-Sent Events (SSE) for live monitoring
+- **Responsive design** - Works on desktop and mobile
+
+## Key Features
+
+- Multi-server connection management
+- Real-time server status monitoring
+- Tool execution interface
+- Resource exploration
+- Dark mode support
+- Modern, accessible UI
+
+## Project Structure
+
 ```
+client/
+├── src/
+│   ├── components/      # React components
+│   │   ├── ui/         # Reusable UI components
+│   │   └── ...         # Feature components
+│   ├── lib/            # Utilities and helpers
+│   ├── services/       # Business logic
+│   ├── hooks/          # Custom React hooks
+│   └── main.tsx        # Application entry point
+├── public/             # Static assets
+└── package.json
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) in the project root.

@@ -1,4 +1,4 @@
-# Contributing to Model Context Protocol Inspector
+# Contributing to MCP Dashboard
 
 Thanks for your interest in contributing! This guide explains how to get involved.
 
@@ -7,7 +7,7 @@ Thanks for your interest in contributing! This guide explains how to get involve
 1. Fork the repository and clone it locally
 2. Install dependencies with `npm install`
 3. Run `npm run dev` to start both client and server in development mode
-4. Use the web UI at http://localhost:6274 to interact with the inspector
+4. Use the web UI at http://localhost:6286 to interact with the dashboard
 
 ## Development Process & Pull Requests
 
@@ -30,7 +30,7 @@ If you find a security vulnerability, please refer to our [Security Policy](SECU
 
 ## Questions?
 
-Feel free to [open an issue](https://github.com/modelcontextprotocol/mcp-inspector/issues) for questions or create a discussion for general topics.
+Feel free to [open an issue](https://github.com/triepod-ai/dashboard/issues) for questions or create a discussion for general topics.
 
 ## License
 
