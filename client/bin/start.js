@@ -161,7 +161,7 @@ async function startDevClient(clientOptions) {
 
   // Give vite time to start before opening or logging the URL
   setTimeout(() => {
-    console.log(`\n🚀 MCP Inspector is up and running at:\n   ${url}\n`);
+    console.log(`\n🚀 MCP Dashboard is up and running at:\n   ${url}\n`);
     if (process.env.MCP_AUTO_OPEN_ENABLED !== "false") {
       console.log("🌐 Opening browser...");
       open(url);
@@ -280,8 +280,8 @@ async function main() {
 
   console.log(
     isDev
-      ? "Starting MCP inspector in development mode..."
-      : "Starting MCP inspector...",
+      ? "Starting MCP Dashboard in development mode..."
+      : "Starting MCP Dashboard...",
   );
 
   // Use provided token from environment or generate a new one
