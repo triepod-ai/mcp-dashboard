@@ -9,7 +9,7 @@
   "main": "build/cli.js",
   "type": "module",
   "bin": {
-    "mcp-inspector-cli": "build/cli.js"
+    "mcp-dashboard-cli": "build/cli.js"
   },
   "files": [
     "build"
