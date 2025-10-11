@@ -1,7 +1,14 @@
 import { useState, memo, useMemo, useCallback, useEffect } from "react";
 import type { JsonValue } from "@/utils/jsonUtils";
 import clsx from "clsx";
-import { Copy, CheckCheck, Code2, FileText } from "lucide-react";
+import {
+  Copy,
+  CheckCheck,
+  Code2,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/lib/hooks/useToast";
 import { getDataType, tryParseJson } from "@/utils/jsonUtils";
@@ -118,7 +125,8 @@ const JsonView = memo(
               </Button>
             </div>
           )}
-          {withCopyButton && (
+          {/* Only show copy button in Raw mode - Formatted view has section-specific copy buttons */}
+          {withCopyButton && currentViewMode === "raw" && (
             <Button
               size="icon"
               variant="ghost"
@@ -385,6 +393,97 @@ interface FormattedViewProps {
   onToggleExpansion: () => void;
 }
 
+interface CollapsibleSectionProps {
+  title: string;
+  sectionKey: string;
+  content: React.ReactNode;
+  copyContent: string;
+  instanceId: string;
+  onToggle: () => void;
+  defaultExpanded?: boolean;
+}
+
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+  title,
+  sectionKey,
+  content,
+  copyContent,
+  instanceId,
+  onToggle,
+  defaultExpanded = true,
+}) => {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const getExpandedState = (): boolean => {
+    const currentState = jsonExpansionStore.getExpansionState(
+      `${instanceId}-sections`,
+    );
+    return currentState[sectionKey] ?? defaultExpanded;
+  };
+
+  const isExpanded = getExpandedState();
+
+  const toggleSection = () => {
+    jsonExpansionStore.toggleNodeExpansion(
+      `${instanceId}-sections`,
+      sectionKey,
+      defaultExpanded,
+    );
+    onToggle();
+  };
+
+  const handleCopy = useCallback(() => {
+    try {
+      navigator.clipboard.writeText(copyContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "Copied",
+        description: `${title} copied to clipboard`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to copy: ${error instanceof Error ? error.message : String(error)}`,
+        variant: "destructive",
+      });
+    }
+  }, [copyContent, title, toast]);
+
+  return (
+    <div className="border-b last:border-b-0 pb-4 mb-4 last:mb-0">
+      <div className="flex items-center justify-between mb-2">
+        <button
+          onClick={toggleSection}
+          className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+        >
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+          {title}
+        </button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6"
+          onClick={handleCopy}
+          title={`Copy ${title}`}
+        >
+          {copied ? (
+            <CheckCheck className="h-3 w-3 text-green-600" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
+        </Button>
+      </div>
+      {isExpanded && <div className="mt-2">{content}</div>}
+    </div>
+  );
+};
+
 const FormattedView = memo(
   ({ data, isError, instanceId, onToggleExpansion }: FormattedViewProps) => {
     // Use global store for text expansion state in formatted view
@@ -594,14 +693,68 @@ const FormattedView = memo(
       );
     };
 
+    // If data is an object, organize it into sections
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+      const dataObj = data as Record<string, JsonValue>;
+
+      // Separate the data into two sections
+      const isErrorData = dataObj.isError;
+      const structuredData: Record<string, JsonValue> = {};
+
+      // Everything except isError goes into structured content (including content field)
+      Object.keys(dataObj).forEach((key) => {
+        if (key !== "isError") {
+          structuredData[key] = dataObj[key];
+        }
+      });
+
+      const hasIsError = isErrorData !== undefined;
+      const hasStructured = Object.keys(structuredData).length > 0;
+
+      return (
+        <div className="space-y-0">
+          {/* Is Error Section - Top */}
+          {hasIsError && (
+            <CollapsibleSection
+              title="Is Error"
+              sectionKey="isError"
+              content={
+                <div className="break-words">{formatValue(isErrorData)}</div>
+              }
+              copyContent={JSON.stringify(isErrorData, null, 2)}
+              instanceId={instanceId}
+              onToggle={onToggleExpansion}
+              defaultExpanded={true}
+            />
+          )}
+
+          {/* Structured Content Section - Everything else formatted */}
+          {hasStructured && (
+            <CollapsibleSection
+              title="Structured Content"
+              sectionKey="structured"
+              content={renderObject(structuredData, 0, "structured")}
+              copyContent={JSON.stringify(structuredData, null, 2)}
+              instanceId={instanceId}
+              onToggle={onToggleExpansion}
+              defaultExpanded={true}
+            />
+          )}
+
+          {/* If no sections, render as normal */}
+          {!hasIsError && !hasStructured && (
+            <div>{renderObject(dataObj, 0, "root")}</div>
+          )}
+        </div>
+      );
+    }
+
+    // For arrays
     if (Array.isArray(data)) {
       return <div className="space-y-2">{renderArray(data, 0, "root")}</div>;
     }
 
-    if (data && typeof data === "object") {
-      return renderObject(data as Record<string, JsonValue>, 0, "root");
-    }
-
+    // For primitives
     return <div>{formatValue(data, "root")}</div>;
   },
 );

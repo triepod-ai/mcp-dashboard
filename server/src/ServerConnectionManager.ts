@@ -130,6 +130,14 @@ export class ServerConnectionManager extends EventEmitter {
       connection.lastConnected = new Date();
       connection.lastError = undefined;
 
+      // Discover available tools after connection
+      this.discoverServerCapabilities(serverId).catch((error) => {
+        console.warn(
+          `Failed to discover capabilities for server '${serverId}':`,
+          error,
+        );
+      });
+
       this.emitServerEvent(serverId, "connected");
     } catch (error) {
       connection.status = "error";
@@ -181,6 +189,121 @@ export class ServerConnectionManager extends EventEmitter {
 
     // Persist configuration changes
     await this.saveConfiguration();
+  }
+
+  /**
+   * Discover server capabilities (tools, resources, prompts)
+   */
+  private async discoverServerCapabilities(serverId: string): Promise<void> {
+    const connection = this.connections.get(serverId);
+    if (!connection || connection.status !== "connected") {
+      return;
+    }
+
+    try {
+      // Use transport.send directly (same pattern as the working API endpoints)
+      const requestId = `tools-list-${Date.now()}`;
+      const toolsRequest = {
+        jsonrpc: "2.0" as const,
+        id: requestId,
+        method: "tools/list",
+        params: {},
+      };
+
+      // Send request and wait for response with a shorter timeout
+      const response = await new Promise<any>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          connection.transport.onmessage = originalHandler;
+          reject(new Error("Tool discovery timeout"));
+        }, 5000); // 5 second timeout
+
+        const originalHandler = connection.transport.onmessage;
+
+        connection.transport.onmessage = (message: any) => {
+          if (message && message.id === requestId) {
+            clearTimeout(timeout);
+            connection.transport.onmessage = originalHandler;
+            resolve(message);
+          }
+        };
+
+        connection.transport
+          .send(toolsRequest)
+          .catch((err) => {
+            clearTimeout(timeout);
+            connection.transport.onmessage = originalHandler;
+            reject(err);
+          });
+      });
+
+      const tools = response.result?.tools || [];
+
+      // Initialize metadata if not present
+      if (!connection.metadata) {
+        connection.metadata = {};
+      }
+
+      // Store capabilities
+      connection.metadata.capabilities = {
+        tools,
+        toolCount: tools.length,
+      };
+
+      console.log(
+        `📊 Discovered ${tools.length} tools for server '${serverId}'`,
+      );
+    } catch (error) {
+      console.warn(
+        `Failed to discover tools for server '${serverId}':`,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  /**
+   * Update an existing server configuration
+   */
+  async updateServer(
+    serverId: string,
+    updatedConfig: Partial<ServerConfig>,
+  ): Promise<void> {
+    const connection = this.connections.get(serverId);
+    if (!connection) {
+      throw new Error(`Server '${serverId}' not found`);
+    }
+
+    const oldConfig = connection.config;
+    const wasConnected = connection.status === "connected";
+
+    // Check if config changes require reconnection
+    const needsReconnect =
+      wasConnected &&
+      (oldConfig.transport !== updatedConfig.transport ||
+        oldConfig.command !== updatedConfig.command ||
+        oldConfig.serverUrl !== updatedConfig.serverUrl ||
+        JSON.stringify(oldConfig.args) !== JSON.stringify(updatedConfig.args));
+
+    // Disconnect if necessary
+    if (needsReconnect) {
+      await this.disconnectServer(serverId);
+    }
+
+    // Update the configuration (keep the same ID)
+    connection.config = {
+      ...oldConfig,
+      ...updatedConfig,
+      id: serverId, // Ensure ID doesn't change
+    };
+
+    this.emit("server-updated", { serverId, config: connection.config });
+
+    // Persist configuration changes
+    await this.saveConfiguration();
+
+    // Reconnect if it was connected before and still enabled
+    if (needsReconnect && connection.config.enabled) {
+      await this.connectServer(serverId);
+    }
   }
 
   /**
@@ -241,13 +364,30 @@ export class ServerConnectionManager extends EventEmitter {
       connected,
       disconnected: total - connected - errors,
       errors,
-      servers: Array.from(this.connections.entries()).map(([id, conn]) => ({
-        id,
-        name: conn.config.name,
-        status: conn.status,
-        lastConnected: conn.lastConnected,
-        lastError: conn.lastError?.message,
-      })),
+      servers: Array.from(this.connections.entries()).map(([id, conn]) => {
+        // Get connection details based on transport type
+        let connectionInfo = "";
+        if (conn.config.transport === "stdio" && conn.config.command) {
+          connectionInfo = conn.config.command;
+        } else if (
+          (conn.config.transport === "sse" ||
+            conn.config.transport === "streamable-http") &&
+          conn.config.serverUrl
+        ) {
+          connectionInfo = conn.config.serverUrl;
+        }
+
+        return {
+          id,
+          name: conn.config.name,
+          status: conn.status,
+          lastConnected: conn.lastConnected,
+          lastError: conn.lastError?.message,
+          transport: conn.config.transport || "stdio",
+          connectionInfo,
+          toolCount: conn.metadata?.capabilities?.tools?.length || 0,
+        };
+      }),
     };
   }
 

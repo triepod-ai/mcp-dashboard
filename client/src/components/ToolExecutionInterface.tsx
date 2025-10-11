@@ -29,6 +29,8 @@ import {
   Wifi,
   WifiOff,
   StopCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import JsonView from "./JsonView";
 import { useWebSocketTool } from "../hooks/useWebSocketTool";
@@ -114,6 +116,9 @@ const ToolExecutionInterface: React.FC = () => {
   const [executions, setExecutions] = useState<ToolExecution[]>([]);
   const [loading, setLoading] = useState(false);
   const [discovering, setDiscovering] = useState(false);
+  const [collapsedExecutions, setCollapsedExecutions] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Scroll position preservation for execution history
   const executionHistoryScrollRef = useRef<HTMLDivElement>(null);
@@ -418,6 +423,8 @@ const ToolExecutionInterface: React.FC = () => {
     formatTimestamp: (timestamp: Date) => string;
     getStatusIcon: (status: string) => React.ReactNode;
     getStatusBadge: (status: string) => React.ReactNode;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
   }
 
   const ExecutionHeader: React.FC<ExecutionHeaderProps> = ({
@@ -426,9 +433,22 @@ const ToolExecutionInterface: React.FC = () => {
     formatTimestamp,
     getStatusIcon,
     getStatusBadge,
+    isCollapsed,
+    onToggleCollapse,
   }) => (
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center space-x-3">
+        <button
+          onClick={onToggleCollapse}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+          title={isCollapsed ? "Expand details" : "Collapse details"}
+        >
+          {isCollapsed ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+        </button>
         {getStatusIcon(execution.status)}
         <span className="font-medium">
           {execution.serverId}.{execution.toolName}
@@ -772,6 +792,19 @@ const ToolExecutionInterface: React.FC = () => {
   ): React.ReactElement => {
     // Use stable key based on execution properties instead of array index
     const stableKey = `${execution.timestamp.getTime()}-${execution.toolName}-${execution.serverId}`;
+    const isCollapsed = collapsedExecutions.has(stableKey);
+
+    const toggleCollapse = () => {
+      setCollapsedExecutions((prev) => {
+        const next = new Set(prev);
+        if (next.has(stableKey)) {
+          next.delete(stableKey);
+        } else {
+          next.add(stableKey);
+        }
+        return next;
+      });
+    };
 
     return (
       <div
@@ -784,14 +817,20 @@ const ToolExecutionInterface: React.FC = () => {
           formatTimestamp={formatTimestamp}
           getStatusIcon={getStatusIcon}
           getStatusBadge={getStatusBadge}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={toggleCollapse}
         />
-        <ExecutionProgress progress={execution.progress} />
-        <ExecutionParameters parameters={execution.parameters} />
-        <ExecutionResult
-          result={execution.result}
-          executionKey={`${execution.timestamp.getTime()}-${execution.toolName}`}
-        />
-        <ExecutionError error={execution.error} />
+        {!isCollapsed && (
+          <>
+            <ExecutionProgress progress={execution.progress} />
+            <ExecutionParameters parameters={execution.parameters} />
+            <ExecutionResult
+              result={execution.result}
+              executionKey={`${execution.timestamp.getTime()}-${execution.toolName}`}
+            />
+            <ExecutionError error={execution.error} />
+          </>
+        )}
       </div>
     );
   };

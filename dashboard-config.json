@@ -1,14 +1,30 @@
 {
   "mcpServers": {
-    "chroma": {
-      "name": "chroma",
-      "command": "/home/bryan/run-chroma-mcp.sh",
+    "194cf82a-4086-4acf-b2b9-89359d9962c1": {
+      "name": "qdrant-http",
+      "command": "",
       "args": [],
-      "env": {
-        "PYTHONUNBUFFERED": "1",
-        "TQDM_DISABLE": "1"
-      },
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://10.0.0.225:10650/mcp",
+      "enabled": true
+    },
+    "ca1d987a-1479-4ac5-8131-d791a7e14b42": {
+      "name": "chroma-http",
+      "command": "",
+      "args": [],
+      "env": {},
+      "transport": "streamable-http",
+      "serverUrl": "http://10.0.0.225:10550/mcp",
+      "enabled": true
+    },
+    "fd82fb83-e0fa-454d-a7c9-7f24e6237050": {
+      "name": "firecrawl",
+      "command": "/home/bryan/run-firecrawl-mcp-server.sh",
+      "args": [],
+      "env": {},
       "transport": "stdio",
+      "serverUrl": "",
       "enabled": true
     }
   }

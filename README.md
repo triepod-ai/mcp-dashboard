@@ -7,7 +7,9 @@ A web-based management and monitoring interface for multiple Model Context Proto
 ## Features
 
 - **Multi-Server Management**: Connect to and manage multiple MCP servers simultaneously
-- **Real-Time Monitoring**: Server-Sent Events (SSE) for live status updates
+- **Server Card Details**: Each server displays transport type, tool count, connection details, and status
+- **Edit Server Configuration**: Modify existing server settings without recreating them
+- **Real-Time Monitoring**: Server-Sent Events (SSE) for live status updates with automatic tool discovery
 - **Tool Execution**: Execute MCP tools with form-based parameter input
 - **Resource Explorer**: Browse and read MCP resources with JSON visualization
 - **Multi-Transport Support**: STDIO, SSE, and Streamable HTTP transports
@@ -106,15 +108,30 @@ The dashboard allows you to:
 - Browse resources from multiple servers
 - Monitor server events and notifications
 
+#### Server Cards
+
+Each server card displays comprehensive connection information:
+
+- **Server Name and Status**: Visual indicators for connected/disconnected/error states
+- **Transport Type**: Badge showing STDIO, SSE, or STREAMABLE-HTTP
+- **Tool Count**: Number of available tools discovered automatically on connection
+- **Connection Details**:
+  - STDIO servers show the command being executed
+  - SSE/HTTP servers show the endpoint URL
+- **Last Connected**: Timestamp of the last successful connection
+- **Actions**: Connect/Disconnect, Edit configuration, Delete server
+
+The edit button (✏️) allows you to modify server configuration without disconnecting or recreating the server. Changes that affect the connection (transport, command, URL) trigger an automatic reconnect.
+
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CLIENT_PORT` | Dashboard web UI port | 6286 |
-| `SERVER_PORT` | Backend server port | 6287 |
-| `HOST` | Bind address (use `0.0.0.0` for network access) | `localhost` |
+| Variable      | Description                                     | Default     |
+| ------------- | ----------------------------------------------- | ----------- |
+| `CLIENT_PORT` | Dashboard web UI port                           | 6286        |
+| `SERVER_PORT` | Backend server port                             | 6287        |
+| `HOST`        | Bind address (use `0.0.0.0` for network access) | `localhost` |
 
 Example:
 

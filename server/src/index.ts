@@ -435,6 +435,36 @@ app.get("/api/dashboard/servers", (req, res) => {
   res.json(serverManager.getStatusSummary());
 });
 
+app.get("/api/dashboard/servers/:id", (req, res) => {
+  try {
+    const connection = serverManager.getConnection(req.params.id);
+    if (!connection) {
+      return res
+        .status(404)
+        .json({ error: "Server not found", serverId: req.params.id });
+    }
+
+    res.json({
+      id: connection.config.id,
+      name: connection.config.name,
+      command: connection.config.command,
+      args: connection.config.args || [],
+      env: connection.config.env || {},
+      transport: connection.config.transport || "stdio",
+      serverUrl: connection.config.serverUrl,
+      enabled: connection.config.enabled,
+      status: connection.status,
+      lastConnected: connection.lastConnected,
+      lastError: connection.lastError?.message,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
+  }
+});
+
 app.post("/api/dashboard/servers/:id/connect", async (req, res) => {
   try {
     await serverManager.connectServer(req.params.id);
@@ -478,6 +508,29 @@ app.post("/api/dashboard/servers", async (req, res) => {
     res
       .status(400)
       .json({ error: error instanceof Error ? error.message : String(error) });
+  }
+});
+
+app.put("/api/dashboard/servers/:id", async (req, res) => {
+  try {
+    const serverId = req.params.id;
+    const updatedConfig = {
+      name: req.body.name,
+      command: req.body.command,
+      args: req.body.args || [],
+      env: req.body.env || {},
+      transport: req.body.transport || "stdio",
+      serverUrl: req.body.serverUrl,
+      enabled: req.body.enabled !== false,
+    };
+
+    await serverManager.updateServer(serverId, updatedConfig);
+    res.json({ success: true, serverId, config: updatedConfig });
+  } catch (error) {
+    res.status(400).json({
+      error: error instanceof Error ? error.message : String(error),
+      serverId: req.params.id,
+    });
   }
 });
 

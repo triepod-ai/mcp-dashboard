@@ -12,6 +12,7 @@ import {
   Monitor,
   Wifi,
   WifiOff,
+  Edit2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,9 @@ export interface ServerStatus {
   status: "connecting" | "connected" | "disconnected" | "error";
   lastConnected?: string;
   lastError?: string;
+  transport?: "stdio" | "sse" | "streamable-http";
+  connectionInfo?: string;
+  toolCount?: number;
 }
 
 export interface DashboardStatus {
@@ -129,6 +133,7 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
     );
   }, [status, connectionState]);
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
+  const [editingServerId, setEditingServerId] = useState<string | null>(null);
 
   const [newServer, setNewServer] = useState<Partial<ServerConfig>>({
     name: "",
@@ -237,6 +242,60 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
       // Status will be updated automatically via SSE
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update existing server
+  const updateServer = async () => {
+    if (!editingServerId) return;
+
+    setLoading(true);
+    try {
+      // Parse args string to array
+      const args =
+        newServer.args && Array.isArray(newServer.args)
+          ? newServer.args
+          : typeof newServer.args === "string"
+            ? (newServer.args as string)
+                .split(" ")
+                .filter((arg: string) => arg.trim())
+            : [];
+
+      const serverConfig = {
+        ...newServer,
+        args,
+        env: newServer.env || {},
+      };
+
+      const response = await fetch(
+        `${dashboardApiUrl}/servers/${editingServerId}`,
+        {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(serverConfig),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update server: ${response.statusText}`);
+      }
+
+      // Reset form and close dialog
+      setNewServer({
+        name: "",
+        transport: "stdio",
+        command: "",
+        args: [],
+        env: {},
+        enabled: true,
+      });
+      setEditingServerId(null);
+      setIsAddServerOpen(false);
+      // Status will be updated automatically via SSE
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update server");
     } finally {
       setLoading(false);
     }
@@ -355,7 +414,24 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
             </div>
           )}
 
-          <Dialog open={isAddServerOpen} onOpenChange={setIsAddServerOpen}>
+          <Dialog
+            open={isAddServerOpen}
+            onOpenChange={(open) => {
+              setIsAddServerOpen(open);
+              if (!open) {
+                // Reset form when closing
+                setEditingServerId(null);
+                setNewServer({
+                  name: "",
+                  transport: "stdio",
+                  command: "",
+                  args: [],
+                  env: {},
+                  enabled: true,
+                });
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -364,9 +440,13 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Add New MCP Server</DialogTitle>
+                <DialogTitle>
+                  {editingServerId ? "Edit MCP Server" : "Add New MCP Server"}
+                </DialogTitle>
                 <DialogDescription>
-                  Configure a new MCP server connection.
+                  {editingServerId
+                    ? "Update the MCP server configuration."
+                    : "Configure a new MCP server connection."}
                 </DialogDescription>
               </DialogHeader>
 
@@ -480,13 +560,13 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                     Cancel
                   </Button>
                   <Button
-                    onClick={addServer}
+                    onClick={editingServerId ? updateServer : addServer}
                     disabled={loading || !newServer.name}
                   >
                     {loading && (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     )}
-                    Add Server
+                    {editingServerId ? "Update Server" : "Add Server"}
                   </Button>
                 </div>
               </div>
@@ -560,6 +640,49 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={async () => {
+                        try {
+                          // Fetch full server config from API
+                          const response = await fetch(
+                            `${dashboardApiUrl}/servers/${server.id}`,
+                            {
+                              headers: getAuthHeaders(),
+                            },
+                          );
+
+                          if (!response.ok) {
+                            throw new Error("Failed to fetch server config");
+                          }
+
+                          const config = await response.json();
+
+                          setEditingServerId(server.id);
+                          setNewServer({
+                            name: config.name,
+                            transport: config.transport || "stdio",
+                            command: config.command || "",
+                            args: config.args || [],
+                            env: config.env || {},
+                            serverUrl: config.serverUrl || "",
+                            enabled: config.enabled,
+                          });
+                          setIsAddServerOpen(true);
+                        } catch (err) {
+                          setError(
+                            err instanceof Error
+                              ? err.message
+                              : "Failed to load server config",
+                          );
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => removeServer(server.id)}
                       disabled={loading}
                       className="text-red-600 hover:text-red-700"
@@ -570,16 +693,45 @@ export const ServerManagementPanel: React.FC<ServerManagementPanelProps> = ({
                 </div>
 
                 {/* Additional server info */}
-                <div className="mt-3 pt-3 border-t text-sm text-gray-600 space-y-1">
+                <div className="mt-3 pt-3 border-t text-sm space-y-1">
+                  {/* Connection details */}
+                  <div className="grid grid-cols-2 gap-2 text-gray-600">
+                    <div className="flex items-center space-x-1">
+                      <span className="font-medium">Transport:</span>
+                      <Badge variant="outline" className="uppercase text-xs">
+                        {server.transport || "stdio"}
+                      </Badge>
+                    </div>
+                    {server.toolCount !== undefined && (
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">Tools:</span>
+                        <span className="text-blue-600 font-semibold">
+                          {server.toolCount}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {server.connectionInfo && (
+                    <div className="text-gray-600">
+                      <span className="font-medium">Connection: </span>
+                      <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
+                        {server.connectionInfo}
+                      </code>
+                    </div>
+                  )}
+
                   {server.lastConnected && (
-                    <div>
-                      Last connected:{" "}
+                    <div className="text-gray-600">
+                      <span className="font-medium">Last connected: </span>
                       {new Date(server.lastConnected).toLocaleString()}
                     </div>
                   )}
+
                   {server.lastError && (
                     <div className="text-red-600">
-                      Error: {server.lastError}
+                      <span className="font-medium">Error: </span>
+                      {server.lastError}
                     </div>
                   )}
                 </div>

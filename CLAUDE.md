@@ -30,16 +30,57 @@
 
 ## Lessons Learned
 
+### Server Card Enhancements and Tool Discovery (2025-10-11)
+
+**Feature**: Enhanced server cards with transport type, tool count, and connection details.
+
+**Implementation Details**:
+
+- **Backend**: Enhanced `getStatusSummary()` to include `transport`, `connectionInfo`, and `toolCount`
+- **Tool Discovery**: Automatic tool discovery on connection using `transport.send()` directly
+- **Frontend**: Server cards display transport badge, tool count, and connection details
+
+**Key Technical Decisions**:
+
+1. **Tool Discovery Method**:
+   - Initially tried `client.listTools()` but it timed out (60 second timeout)
+   - Switched to direct `transport.send()` with manual message handler
+   - Used 5-second timeout for faster feedback
+   - Pattern matches the working API endpoint approach
+
+2. **Connection Info Display**:
+   - STDIO: Shows command path (e.g., `node build/index.js`)
+   - SSE/HTTP: Shows server URL (e.g., `http://localhost:10650/mcp`)
+   - Displayed in monospace code block for clarity
+
+3. **Edit Server Functionality**:
+   - Added edit button to each server card
+   - Dual-mode dialog (Add/Edit) with form pre-population
+   - Smart reconnection: only disconnects/reconnects if transport/command/URL changes
+   - Added `GET /api/dashboard/servers/:id` endpoint for fetching full config
+   - Added `PUT /api/dashboard/servers/:id` endpoint for updates
+   - Changes persisted to dashboard-config.json
+
+**Testing Notes**:
+
+- Verified with STDIO, SSE, and Streamable HTTP transports
+- Tool count works correctly for all transport types
+- chroma-http: 19 tools, qdrant-http: 6 tools (verified)
+
+**Key Takeaway**: When implementing tool discovery, use the direct `transport.send()` approach with manual message handling rather than high-level client methods for better timeout control and reliability.
+
 ### Authentication Architecture (2025-10-11)
 
 **Issue**: Dashboard worked in dev mode (`npm run dev --no-auth`) but failed with "Connection error" when running with authentication enabled (`bunx @bryan-thompson/dashboard`).
 
 **Root Cause**:
+
 - Server authentication middleware requires `x-mcp-proxy-auth` header on all API requests
 - Client was only sending token with SSE connections (via query parameter)
 - All REST API endpoints (`/api/dashboard/*`) were returning 401 Unauthorized
 
 **Solution**:
+
 - Added `getAuthHeaders()` helper in client components
 - Updated all `fetch()` calls to include `x-mcp-proxy-auth` header
 - Token priority: URL param (`MCP_PROXY_AUTH_TOKEN`) → localStorage → empty string
