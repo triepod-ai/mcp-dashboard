@@ -216,7 +216,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = () => {
         {sidebarOpen && (
           <div className="p-4 border-t border-border bg-muted/50">
             <div className="text-xs text-muted-foreground text-center">
-              MCP Dashboard v0.1.0
+              MCP Dashboard v0.1.4
             </div>
           </div>
         )}
