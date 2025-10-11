@@ -1,6 +1,6 @@
 {
   "name": "@bryan-thompson/dashboard-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Web client for the MCP Dashboard - multi-server management interface",
   "license": "MIT",
   "author": "Bryan Thompson",
